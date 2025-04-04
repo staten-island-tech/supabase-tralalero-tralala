@@ -1,5 +1,5 @@
 <template>
-  <div><router-link to="tspmo">aweaweaweawe</router-link></div>
+  <div></div>
 </template>
 
 <script setup lang="ts"></script>
