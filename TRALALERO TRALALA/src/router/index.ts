@@ -10,9 +10,9 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/tspmo',
-      name: 'tspmo',
-      component: () => import('../views/TsPmo.vue'),
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/MyProfile.vue'),
     },
   ],
 })

@@ -1,8 +1,8 @@
 <template>
   <div>
     <nav class="nav-ribbon">
-      <router-link to="/" class="nav-item">Home</router-link>
-      <router-link to="/tspmo" class="nav-item">TsPmo</router-link>
+      <router-link to="/" class="nav-item">Name</router-link>
+      <router-link to="/profile" class="nav-item"><img src="" alt="" /></router-link>
     </nav>
   </div>
 </template>
