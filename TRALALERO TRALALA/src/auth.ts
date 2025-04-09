@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { useAuthStore } from './stores/authStore';
 
 export const signUp = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
@@ -17,9 +18,13 @@ export const logIn = async (email: string, password: string) => {
     email,
     password,
   });
+
+  const authStore = useAuthStore();
+  
   if (error) {
     console.error('Error logging in:', error.message);
   } else {
     console.log('User logged in successfully:', data);
+    authStore.setLoggedIn(data.user);
   }
 };
