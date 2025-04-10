@@ -4,5 +4,8 @@ import NavRibbon from './components/NavRibbon.vue'
 </script>
 
 <template>
-  <nav><NavRibbon /></nav>
+  <nav>
+    <NavRibbon />
+    <RouterView />
+  </nav>
 </template>

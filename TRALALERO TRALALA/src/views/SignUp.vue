@@ -13,6 +13,8 @@
 import { defineComponent, ref } from 'vue'
 import { signUp } from '../auth'
 
+console.log('SignUp component loaded')
+
 export default defineComponent({
   setup() {
     const email = ref('')

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button v-if="auth.isLoggedIn" @click="doSomething">Protected Button</button>
+    <button v-if="auth.isLoggedIn" @click="doSomething">button</button>
 
     <p v-else>Please log in to access this feature.</p>
   </div>

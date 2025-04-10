@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <nav class="nav-ribbon">
+  <div class="text-center">
+    <nav class="">
       <router-link to="/" class="nav-item">Italy's Finest</router-link>
       <router-link to="/profile" class="nav-item"><img src="" alt="" /></router-link>
       <router-link to="/signup">Sign Up</router-link>
