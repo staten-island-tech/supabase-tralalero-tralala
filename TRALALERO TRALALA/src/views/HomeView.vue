@@ -1,7 +1,21 @@
 <template>
-  <div></div>
+  <div>
+    <button v-if="auth.isLoggedIn" @click="doSomething">button</button>
+
+
+    <p v-else>Please log in to access this feature.</p>
+  </div>
 </template>
 
-<script setup lang="ts"></script>
 
-<style scoped></style>
+<script setup lang="ts">
+import { useAuthStore } from '../stores/authStore'
+
+
+const auth = useAuthStore()
+
+
+const doSomething = () => {
+  console.log('Doing something only a logged-in user can do!')
+}
+</script>

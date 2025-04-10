@@ -6,10 +6,14 @@ export const signUp = async (email: string, password: string) => {
     email,
     password,
   });
+
+  const authStore = useAuthStore();
+
   if (error) {
     console.error('Error signing up:', error.message);
   } else {
     console.log('User signed up successfully:', data);
+    authStore.setLoggedIn(data.user);
   }
 };
 
