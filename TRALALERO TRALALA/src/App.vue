@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import NavRibbon from './components/NavRibbon.vue'
 </script>
 
 <template>
-  <nav>
-    <RouterLink to="/signup">Sign Up</RouterLink>
-    <RouterLink to="/login">Log In</RouterLink>
-  </nav>
-  <RouterView />
+  <nav><NavRibbon /></nav>
 </template>
