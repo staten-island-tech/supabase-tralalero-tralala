@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h2 class="font-bold text-center m-auto">Italy's Finest</h2>
     <h2>Sign Up</h2>
     <form @submit.prevent="handleSignUp">
       <input v-model="email" type="email" placeholder="Email" required />
@@ -9,24 +10,18 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import { signUp } from '../auth'
+
+const email = ref('')
+const password = ref('')
 
 console.log('SignUp component loaded')
 
-export default defineComponent({
-  setup() {
-    const email = ref('')
-    const password = ref('')
-
-    const handleSignUp = () => {
-      if (email.value && password.value) {
-        signUp(email.value, password.value)
-      }
-    }
-
-    return { email, password, handleSignUp }
-  },
-})
+const handleSignUp = () => {
+  if (email.value && password.value) {
+    signUp(email.value, password.value)
+  }
+}
 </script>
