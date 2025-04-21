@@ -26,8 +26,8 @@ import { useAuthStore } from '@/stores/authStore'
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
-const errorMessage = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
+const errorMessage = ref<string>('')
+const successMessage = ref<string>('')
 const authStore = useAuthStore()
 
 console.log('LogIn component loaded')
@@ -35,8 +35,8 @@ console.log('LogIn component loaded')
 const handleLogIn = async () => {
   if (email.value && password.value) {
     isLoading.value = true
-    errorMessage.value = null
-    successMessage.value = null
+    errorMessage.value = ''
+    successMessage.value = ''
 
     try {
       await logIn(email.value, password.value)
