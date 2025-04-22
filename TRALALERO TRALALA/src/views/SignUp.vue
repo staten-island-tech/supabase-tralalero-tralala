@@ -5,9 +5,7 @@
       style="min-height: 480px"
     >
       <div
-        @scroll.prevent
-        @wheel.prevent
-        @touchmove.prevent
+        
         class="flex flex-col h-full justify-between"
       >
         <div>
