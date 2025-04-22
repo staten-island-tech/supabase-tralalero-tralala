@@ -1,6 +1,7 @@
 <template>
   <div class="m-4">
     <h2 class="font-bold text-2xl mb-2">Log In</h2>
+    <h2 class="">Log In</h2>
     <div class="bg-gray-300 p-4 rounded-xl h-40">
       <form @submit.prevent="handleLogIn">
         <input v-model="email" type="email" placeholder="Email" required />
@@ -21,7 +22,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { logIn } from '../auth'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '../stores/authStore'
+
+const email = ref('')
+const password = ref('')
+const isLoading = ref(false)
+const errorMessage = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
