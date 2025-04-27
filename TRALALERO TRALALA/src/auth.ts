@@ -1,34 +1,49 @@
 import { supabase } from './supabase';
 import { useAuthStore } from './stores/authStore';
+import type { LoginRequest, LoginResponse } from './types/types';
 
-export const signUp = async (email: string, password: string) => {
+export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> => {
   const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+    email: credentials.email,
+    password: credentials.password,
   });
 
   const authStore = useAuthStore();
 
-  if (error) {
-    console.error('Error signing up:', error.message);
-  } else {
-    console.log('User signed up successfully:', data);
-    authStore.setLoggedIn(data.user);
+  if (error || !data.session || !data.user) {
+    console.error('Error signing up:', error?.message);
+    throw new Error(error?.message || 'Unknown sign-up error');
   }
+
+  const loginResponse: LoginResponse = {
+    user: data.user,
+    token: data.session.access_token,
+  };
+
+  authStore.setLoggedIn(loginResponse);
+
+  return loginResponse;
 };
 
-export const logIn = async (email: string, password: string) => {
+export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> => {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+    email: credentials.email,
+    password: credentials.password,
   });
 
   const authStore = useAuthStore();
-  
-  if (error) {
-    console.error('Error logging in:', error.message);
-  } else {
-    console.log('User logged in successfully:', data);
-    authStore.setLoggedIn(data.user);
+
+  if (error || !data.session || !data.user) {
+    console.error('Error logging in:', error?.message);
+    throw new Error(error?.message || 'Unknown login error');
   }
+
+  const loginResponse: LoginResponse = {
+    user: data.user,
+    token: data.session.access_token,
+  };
+
+  authStore.setLoggedIn(loginResponse);
+
+  return loginResponse;
 };
