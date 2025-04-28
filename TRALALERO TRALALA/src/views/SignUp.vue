@@ -1,13 +1,9 @@
 <template>
   <div class="bg-white flex flex-col items-center justify-center p-4">
     <div
-      class="w-full max-w-md border border-gray-200 rounded-lg shadow-sm py-10 px-8"
-      style="min-height: 480px"
+      class="w-full min-h-[480px] max-w-md border border-gray-200 rounded-lg shadow-sm py-10 px-8"
     >
-      <div
-        
-        class="flex flex-col h-full justify-between"
-      >
+      <div class="flex flex-col h-full justify-between">
         <div>
           <h2 class="text-3xl font-medium text-center mb-3 text-gray-900">Italy's Finest</h2>
           <h2 class="text-2xl font-normal mb-8 text-gray-700 text-center">Sign Up</h2>
@@ -44,15 +40,9 @@
 
           <div
             v-if="errorMessage"
-            class="mt-6 p-3 bg-gray-100 border border-gray-300 text-gray-800 rounded-md text-sm"
+            class="mt-6 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm"
           >
             {{ errorMessage }}
-          </div>
-          <div
-            v-if="successMessage"
-            class="mt-6 p-3 bg-gray-100 border border-gray-300 text-gray-800 rounded-md text-sm"
-          >
-            {{ successMessage }}
           </div>
         </div>
 
@@ -68,26 +58,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { signUp } from '../auth'
+import { useAuthStore } from '../stores/authStore'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
-const errorMessage = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
+const errorMessage = ref<string>()
+
+const auth = useAuthStore()
+
+onMounted(() => {
+  if (auth.isLoggedIn) {
+    router.push({ path: '/profile', replace: true })
+  }
+})
 
 const handleSignUp = async () => {
   if (email.value && password.value) {
     isLoading.value = true
-    errorMessage.value = null
-    successMessage.value = null
+    errorMessage.value = ''
 
     try {
       await signUp(email.value, password.value)
-      successMessage.value = 'Account created successfully!'
+      router.push({ path: '/profile', replace: true })
     } catch (error) {
-      errorMessage.value = 'Registration failed. Please try again.'
+      if (error instanceof Error) {
+        errorMessage.value = `Registration failed. ${error.message}`
+      } else {
+        errorMessage.value = 'Registration failed due to an unknown error.'
+      }
     } finally {
       isLoading.value = false
     }

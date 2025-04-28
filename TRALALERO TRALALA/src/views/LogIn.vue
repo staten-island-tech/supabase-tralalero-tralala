@@ -1,8 +1,7 @@
 <template>
   <div class="bg-white flex flex-col items-center justify-center p-4">
     <div
-      class="w-full max-w-md border border-gray-200 rounded-lg shadow-sm py-10 px-8"
-      style="min-height: 480px"
+      class="w-full min-h-[480px] max-w-md border border-gray-200 rounded-lg shadow-sm py-10 px-8"
     >
       <div class="flex flex-col h-full justify-between">
         <div>
@@ -41,15 +40,9 @@
 
           <div
             v-if="errorMessage"
-            class="mt-6 p-3 bg-gray-100 border border-gray-300 text-gray-800 rounded-md text-sm"
+            class="mt-6 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm"
           >
             {{ errorMessage }}
-          </div>
-          <div
-            v-if="successMessage"
-            class="mt-6 p-3 bg-gray-100 border border-gray-300 text-gray-800 rounded-md text-sm"
-          >
-            {{ successMessage }}
           </div>
         </div>
 
@@ -65,30 +58,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { logIn } from '../auth'
 import { useAuthStore } from '../stores/authStore'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
-const errorMessage = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
-const authStore = useAuthStore()
+const errorMessage = ref<string>()
+const auth = useAuthStore()
+
+onMounted(() => {
+  if (auth.isLoggedIn) {
+    router.push({ path: '/profile', replace: true })
+  }
+})
 
 const handleLogIn = async () => {
   if (email.value && password.value) {
     isLoading.value = true
-    errorMessage.value = null
-    successMessage.value = null
+    errorMessage.value = ''
 
     try {
       await logIn(email.value, password.value)
-      if (authStore.isLoggedIn) {
-        successMessage.value = 'Logged in successfully!'
-      }
+      router.push({ path: '/profile', replace: true })
     } catch (error) {
-      errorMessage.value = 'Invalid credentials. Please try again.'
+      if (error instanceof Error) {
+        errorMessage.value = `Login failed. ${error.message}`
+      } else {
+        errorMessage.value = 'Login failed due to an unknown error.'
+      }
     } finally {
       isLoading.value = false
     }

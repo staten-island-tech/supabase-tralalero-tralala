@@ -10,9 +10,13 @@ export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> 
 
   const authStore = useAuthStore();
 
-  if (error || !data.session || !data.user) {
-    console.error('Error signing up:', error?.message);
-    throw new Error(error?.message || 'Unknown sign-up error');
+  if (error) {
+    console.error('Error signing up:', error.message);
+    throw error;
+  } else {
+    console.log('User signed up successfully:', data);
+    const userId = (await supabase.from("profiles").select('*').eq('email', email).single()).data.id;
+    authStore.setLoggedIn(userId, data.user);
   }
 
   const loginResponse: LoginResponse = {
@@ -32,10 +36,14 @@ export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> =
   });
 
   const authStore = useAuthStore();
-
-  if (error || !data.session || !data.user) {
-    console.error('Error logging in:', error?.message);
-    throw new Error(error?.message || 'Unknown login error');
+  
+  if (error) {
+    console.error('Error logging in:', error.message);
+    throw error;
+  } else {
+    console.log('User logged in successfully:', data);
+    const userId = (await supabase.from("profiles").select('*').eq('email', email).single()).data.id;
+    authStore.setLoggedIn(userId, data.user);
   }
 
   const loginResponse: LoginResponse = {

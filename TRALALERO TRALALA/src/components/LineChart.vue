@@ -8,20 +8,19 @@
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
-  ArcElement,
-  CategoryScale,
-  RadialLinearScale,
 } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, RadialLinearScale)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 const props = defineProps({
   data: Object,
   options: Object,
 })
 </script>
-
-<style scoped></style>

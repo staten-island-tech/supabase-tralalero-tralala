@@ -76,6 +76,17 @@
             </div>
           </transition>
         </div>
+        <router-link
+          v-if="auth.isLoggedIn"
+          :to="`/profile/${auth.id}`"
+          class="hover:opacity-80 transition-opacity duration-200"
+        >
+          <img
+            src="/images/profilepic.png"
+            alt="Profile"
+            class="h-10 w-10 rounded-full border border-gray-300 object-cover"
+          />
+        </router-link>
         <div v-else class="flex space-x-4">
           <router-link
             to="/signup"

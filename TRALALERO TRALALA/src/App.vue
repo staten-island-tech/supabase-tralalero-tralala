@@ -3,7 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import NavRibbon from './components/NavRibbon.vue'
 </script>
 
-<template @scroll.prevent @wheel.prevent @touchmove.prevent class="overflow-hidden">
+<template>
   <nav>
     <NavRibbon />
     <RouterView />
