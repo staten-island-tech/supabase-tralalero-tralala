@@ -1,15 +1,13 @@
-export interface AppUser {
+export type AppUser = {
     id: string;
     username: string;
     email: string;
   }
   
-  export interface LoginRequest {
+  export type LoginRequest = {
     email: string;
     password: string;
   }
   
-  export interface LoginResponse {
-    user: User;
-    token: string; 
+  export type LoginResponse = {
   }
