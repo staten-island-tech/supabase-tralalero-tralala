@@ -14,7 +14,7 @@ const router = createRouter({
       component: () => import('../views/SignUp.vue'),
     },
     {
-      path: '/profile',
+      path: '/profile/:id?',
       name: 'profile',
       component: () => import('../views/MyProfile.vue'),
     },

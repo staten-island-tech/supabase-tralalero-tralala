@@ -11,7 +11,7 @@
       <div class="flex items-center space-x-4">
         <router-link
           v-if="auth.isLoggedIn"
-          to="/profile"
+          :to="`/profile/${auth.id}`"
           class="hover:opacity-80 transition-opacity duration-200"
         >
           <img

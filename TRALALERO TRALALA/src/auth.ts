@@ -11,9 +11,11 @@ export const signUp = async (email: string, password: string) => {
 
   if (error) {
     console.error('Error signing up:', error.message);
+    throw error;
   } else {
     console.log('User signed up successfully:', data);
-    authStore.setLoggedIn(data.user);
+    const userId = (await supabase.from("profiles").select('*').eq('email', email).single()).data.id;
+    authStore.setLoggedIn(userId, data.user);
   }
 };
 
@@ -27,8 +29,10 @@ export const logIn = async (email: string, password: string) => {
   
   if (error) {
     console.error('Error logging in:', error.message);
+    throw error;
   } else {
     console.log('User logged in successfully:', data);
-    authStore.setLoggedIn(data.user);
+    const userId = (await supabase.from("profiles").select('*').eq('email', email).single()).data.id;
+    authStore.setLoggedIn(userId, data.user);
   }
 };
