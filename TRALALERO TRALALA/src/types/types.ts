@@ -1,6 +1,5 @@
 export type AppUser = {
     id: string;
-    username: string;
     email: string;
   }
   
@@ -10,4 +9,6 @@ export type AppUser = {
   }
   
   export type LoginResponse = {
+    user: AppUser;
+    token: string;
   }

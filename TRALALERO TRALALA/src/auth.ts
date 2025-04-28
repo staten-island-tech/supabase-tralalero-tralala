@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { useAuthStore } from './stores/authStore';
 import type { LoginRequest, LoginResponse } from './types/types';
+import App from './App.vue';
 
 export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> => {
   const { data, error } = await supabase.auth.signUp({
@@ -19,12 +20,30 @@ export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> 
     authStore.setLoggedIn(userId, data.user);
   }
 
-  const loginResponse: LoginResponse = {
-    user: data.user,
-    token: data.session.access_token,
-  };
+  if (data.session && data.user) {
+    const loginResponse: LoginResponse = {
+      user: {
+        id: data.user.id,
+        email: data.user.email ?? '',
+      },
+      token: data.session.access_token,
+    };
+  } else {
+    throw new Error('Session data is null');
+  }
+  
 
-  authStore.setLoggedIn(loginResponse);
+  if (data.session && data.user) {
+    authStore.setLoggedIn(data.user.id, data.session.access_token);
+  } else {
+    throw new Error('Session data is null');
+  }
+
+  if (data.session && data.user) {
+    authStore.setLoggedIn(data.user.id, data.session.access_token);
+  } else {
+    throw new Error('Session data is null');
+  }
 
   return loginResponse;
 };
@@ -51,7 +70,11 @@ export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> =
     token: data.session.access_token,
   };
 
-  authStore.setLoggedIn(loginResponse);
+  if (data.session && data.user) {
+    authStore.setLoggedIn(data.user.id, data.session.access_token);
+  } else {
+    throw new Error('Session data is null');
+  }
 
   return loginResponse;
 };
