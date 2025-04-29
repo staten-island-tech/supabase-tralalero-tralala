@@ -16,7 +16,7 @@ export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> 
     throw error;
   } else {
     console.log('User signed up successfully:', data);
-    const userId = (await supabase.from("profiles").select('*').eq('email', email).single()).data.id;
+    const userId = (await supabase.from("profiles").select('*').eq('email', credentials.email).single()).data.id;
     authStore.setLoggedIn(userId, data.user);
   }
 
@@ -28,24 +28,13 @@ export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> 
       },
       token: data.session.access_token,
     };
-  } else {
-    throw new Error('Session data is null');
-  }
-  
-
-  if (data.session && data.user) {
     authStore.setLoggedIn(data.user.id, data.session.access_token);
+    return loginResponse;
   } else {
     throw new Error('Session data is null');
   }
+ 
 
-  if (data.session && data.user) {
-    authStore.setLoggedIn(data.user.id, data.session.access_token);
-  } else {
-    throw new Error('Session data is null');
-  }
-
-  return loginResponse;
 };
 
 export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> => {
@@ -61,20 +50,22 @@ export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> =
     throw error;
   } else {
     console.log('User logged in successfully:', data);
-    const userId = (await supabase.from("profiles").select('*').eq('email', email).single()).data.id;
+    const userId = (await supabase.from("profiles").select('*').eq('email', credentials.email).single()).data.id;
     authStore.setLoggedIn(userId, data.user);
   }
 
-  const loginResponse: LoginResponse = {
-    user: data.user,
-    token: data.session.access_token,
-  };
-
   if (data.session && data.user) {
+    const loginResponse: LoginResponse = {
+      user: {
+        id: data.user.id,
+        email: data.user.email ?? '',
+      },
+      token: data.session.access_token,
+    };
     authStore.setLoggedIn(data.user.id, data.session.access_token);
+    return loginResponse;
   } else {
     throw new Error('Session data is null');
   }
-
-  return loginResponse;
+  
 };

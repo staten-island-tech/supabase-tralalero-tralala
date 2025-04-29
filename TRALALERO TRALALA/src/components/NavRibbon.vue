@@ -51,7 +51,7 @@
             >
               <div class="py-1" role="none">
                 <router-link
-                  to="/profile"
+                  :to="`/profile/${auth.id}`"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   role="menuitem"
                 >
@@ -76,17 +76,6 @@
             </div>
           </transition>
         </div>
-        <router-link
-          v-if="auth.isLoggedIn"
-          :to="`/profile/${auth.id}`"
-          class="hover:opacity-80 transition-opacity duration-200"
-        >
-          <img
-            src="/images/profilepic.png"
-            alt="Profile"
-            class="h-10 w-10 rounded-full border border-gray-300 object-cover"
-          />
-        </router-link>
         <div v-else class="flex space-x-4">
           <router-link
             to="/signup"

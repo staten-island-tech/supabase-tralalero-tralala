@@ -82,7 +82,7 @@ const handleLogIn = async () => {
     errorMessage.value = ''
 
     try {
-      await logIn(email.value, password.value)
+      await logIn({ email: email.value, password: password.value })
       router.push({ path: '/profile', replace: true })
     } catch (error) {
       if (error instanceof Error) {
