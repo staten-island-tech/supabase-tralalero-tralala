@@ -1,6 +1,6 @@
 <template>
   <div class="bg-white border-b border-gray-200 p-7">
-    <h1 class="text-[min(5vw,1.5rem)] max-w-fit">{{ account?.data?.email }}</h1>
+    <h1 class="text-[min(5vw,1.5rem)] max-w-fit">{{ account?.data?.id }}</h1>
   </div>
 </template>
 
