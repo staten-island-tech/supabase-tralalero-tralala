@@ -16,7 +16,7 @@ export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> 
     throw error;
   } else {
     console.log('User signed up successfully:', data);
-    const userId = (await supabase.from("profiles").select('*').eq('email', credentials.email).single()).data.id;
+    const userId = (await supabase.from("profiles").select('*').eq('email', credentials.email.toLowerCase()).single()).data.id;
     authStore.setLoggedIn(userId, data.user);
   }
 
@@ -50,7 +50,7 @@ export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> =
     throw error;
   } else {
     console.log('User logged in successfully:', data);
-    const userId = (await supabase.from("profiles").select('*').eq('email', credentials.email).single()).data.id;
+    const userId = (await supabase.from("profiles").select('*').eq('email', credentials.email.toLowerCase()).single()).data.id;
     authStore.setLoggedIn(userId, data.user);
   }
 
