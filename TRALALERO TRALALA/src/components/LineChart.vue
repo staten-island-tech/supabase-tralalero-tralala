@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Line :data="props.data" :options="props.options" />
+    
   </div>
 </template>
 

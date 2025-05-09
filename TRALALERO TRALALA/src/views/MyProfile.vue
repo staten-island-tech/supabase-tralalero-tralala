@@ -1,5 +1,5 @@
 <template>
-  <div><ProfileRibbon /><StatRibbon /><LineChart :data="data" :options="options" /></div>
+  <div><ProfileRibbon /><StatRibbon /><D3Test/></div>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +30,8 @@ const data = {
     },
   ],
 }
+
+import D3Test from '@/components/D3Test.vue'
 
 const options = {
   responsive: true,
