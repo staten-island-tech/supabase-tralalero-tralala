@@ -23,8 +23,8 @@ export default defineComponent({
 
       // Set the dimensions and margins of the graph
       const margin = { top: 10, right: 30, bottom: 30, left: 60 };
-      const width = 460 - margin.left - margin.right;
-      const height = 400 - margin.top - margin.bottom;
+      const width = 300 - margin.left - margin.right;
+      const height = 390 - margin.top - margin.bottom;
 
       // Append the svg object to the div
       const svg = d3.select(chartContainer.value)
