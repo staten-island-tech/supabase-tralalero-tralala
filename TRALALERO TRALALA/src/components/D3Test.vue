@@ -13,6 +13,16 @@ interface DataPoint {
   value: number;
 }
 
+interface StockData {
+  [timestamp: string]: {
+    '1. open': string;
+    '2. high': string;
+    '3. low': string;
+    '4. close': string;
+    '5. volume': string;
+  };
+}
+
 export default defineComponent({
   name: 'LineChart',
   setup() {
@@ -23,7 +33,18 @@ export default defineComponent({
     const height = 390; // Fixed height
     const margin = { top: 10, right: 30, bottom: 30, left: 60 };
 
-    const drawChart = () => { 
+    // Variable data link (could be passed as prop in real implementation)
+    const dataLink = ref('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=BTC&interval=15min&apikey=B6S0LQO8ZSN31GKX');
+
+    const processData = (rawData: any): DataPoint[] => {
+      const timeSeries = rawData['Time Series (15min)'] as StockData;
+      return Object.entries(timeSeries).map(([timestamp, values]) => ({
+        date: new Date(timestamp),
+        value: parseFloat(values['4. close'])
+      })).sort((a, b) => a.date.getTime() - b.date.getTime());
+    };
+
+    const drawChart = async () => { 
       if (!chartContainer.value) return;
 
       // Clear previous SVG if it exists
@@ -42,14 +63,14 @@ export default defineComponent({
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-      // Read the data
-      d3.csv<DataPoint>(
-        'https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv',
-        (d: DataPoint) => ({
-          date: d3.timeParse('%Y-%m-%d')(d.date) as Date,
-          value: +d.value
-        })
-      ).then((data: DataPoint[]) => {
+      try {
+
+        const response = await fetch(dataLink.value);
+        const rawData = await response.json();
+        
+
+        const data = processData(rawData);
+
         if (!data || !svg) return;
 
         // Add X axis
@@ -63,7 +84,7 @@ export default defineComponent({
 
         // Add Y axis
         const y = d3.scaleLinear()
-          .domain([0, d3.max(data, (d) => d.value) as number])
+          .domain([d3.min(data, (d) => d.value) as number * 0.95, d3.max(data, (d) => d.value) as number * 1.05])
           .range([height, 0]);
 
         svg.append('g')
@@ -79,7 +100,21 @@ export default defineComponent({
             .x((d) => x(d.date))
             .y((d) => y(d.value))
           );
-      });
+
+        // Add dots for each data point
+        svg.append('g')
+          .selectAll('dot')
+          .data(data)
+          .enter()
+          .append('circle')
+          .attr('cx', (d) => x(d.date))
+          .attr('cy', (d) => y(d.value))
+          .attr('r', 2)
+          .attr('fill', 'steelblue');
+
+      } catch (error) {
+        console.error('Error loading or processing data:', error);
+      }
     };
 
     onMounted(() => {
