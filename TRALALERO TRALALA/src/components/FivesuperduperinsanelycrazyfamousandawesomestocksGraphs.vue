@@ -3,6 +3,8 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 async function fetchData() {
   const symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'FB', 'TSM', 'V', 'JNJ']
   const apiKey = 'B6S0LQO8ZSN31GKX'
@@ -22,6 +24,15 @@ async function fetchData() {
     throw error
   }
 }
+onMounted(() =>
+  fetchData()
+    .then((data) => {
+      console.log('Fetched data:', data)
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error)
+    }),
+)
 </script>
 
 <style scoped></style>

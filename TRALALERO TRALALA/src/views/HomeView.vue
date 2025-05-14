@@ -1,5 +1,6 @@
 <template>
   <div>
+    <FivesuperduperinsanelycrazyfamousandawesomestocksGraphs />
     <button v-if="auth.isLoggedIn" @click="doSomething">button</button>
 
     <p v-else>Please log in to access this feature.</p>
@@ -8,6 +9,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '../stores/authStore'
+import FivesuperduperinsanelycrazyfamousandawesomestocksGraphs from '@/components/FivesuperduperinsanelycrazyfamousandawesomestocksGraphs.vue'
 
 const auth = useAuthStore()
 
