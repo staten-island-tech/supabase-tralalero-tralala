@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '../stores/authStore'
-import FivesuperduperinsanelycrazyfamousandawesomestocksGraphs from '@/components/FivesuperduperinsanelycrazyfamousandawesomestocksGraphs.vue'
+import FivesuperduperinsanelycrazyfamousandawesomestocksGraphs from '@/components/TensuperduperinsanelycrazyfamousandawesomestocksGraphs.vue'
 
 const auth = useAuthStore()
 
