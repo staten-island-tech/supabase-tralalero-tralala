@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { defineComponent, onMounted, ref, onBeforeUnmount } from 'vue';
 import * as d3 from 'd3';
 
@@ -22,18 +22,13 @@ interface StockData {
     '5. volume': string;
   };
 }
-
-export default defineComponent({
-  name: 'LineChart',
-  setup() {
-    const chartContainer = ref<HTMLElement | null>(null);
+const chartContainer = ref<HTMLElement | null>(null);
     let resizeObserver: ResizeObserver | null = null;
     let svg: d3.Selection<SVGGElement, unknown, null, undefined> | null = null;
     let width = 0;
     const height = 390; // Fixed height
     const margin = { top: 10, right: 30, bottom: 30, left: 60 };
 
-    // Variable data link (could be passed as prop in real implementation)
     const dataLink = ref('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=BTC&interval=15min&apikey=B6S0LQO8ZSN31GKX');
 
     const processData = (rawData: any): DataPoint[] => {
@@ -135,9 +130,4 @@ export default defineComponent({
       }
     });
 
-    return {
-      chartContainer
-    };
-  }
-});
 </script>
