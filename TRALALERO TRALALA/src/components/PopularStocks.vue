@@ -16,9 +16,9 @@ type StockData = {
   data: StockPoint[]
 }
 
-const symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'FB', 'TSM', 'V', 'JNJ']
+const symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'TSM', 'V', 'JNJ']
 const apiKey = 'B6S0LQO8ZSN31GKX'
-const baseUrl = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&interval=15min'
+const baseUrl = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=compact'
 
 async function fetchData(): Promise<StockData[]> {
   try {
@@ -33,7 +33,8 @@ async function fetchData(): Promise<StockData[]> {
     const jsonData = await Promise.all(responses.map((res) => res.json()))
 
     return symbols.map((symbol, i) => {
-      const timeSeries = jsonData[i]['Time Series (15min)']
+      console.log(jsonData[i])
+      const timeSeries = jsonData[i]['Time Series (Daily)']
       if (!timeSeries) throw new Error(`Missing time series data for ${symbol}`)
 
       const data: StockPoint[] = Object.entries(timeSeries).map(([time, values]) => ({
