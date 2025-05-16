@@ -29,7 +29,7 @@ const chartContainer = ref<HTMLElement | null>(null);
     const height = 390; // Fixed height
     const margin = { top: 10, right: 30, bottom: 30, left: 60 };
 
-    const dataLink = ref('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=BTC&interval=15min&apikey=B6S0LQO8ZSN31GKX');
+    const dataLink = ref('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=15min&month=2009-01&outputsize=full&apikey=B6S0LQO8ZSN31GKX');
 
     const processData = (rawData: any): DataPoint[] => {
       const timeSeries = rawData['Time Series (15min)'] as StockData;
