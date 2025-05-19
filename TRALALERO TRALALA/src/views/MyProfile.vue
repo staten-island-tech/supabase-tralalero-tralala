@@ -1,5 +1,5 @@
 <template>
-  <div><ProfileRibbon /><StatRibbon /><LineChart :data="data" :options="options" /></div>
+  <div><ProfileRibbon /><StatRibbon /></div>
 </template>
 
 <script setup lang="ts">
