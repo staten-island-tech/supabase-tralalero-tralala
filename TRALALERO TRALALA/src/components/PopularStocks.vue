@@ -4,54 +4,10 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import type { StockPoint, StockData } from '@/types/types'
 import * as d3 from 'd3'
-
-type StockPoint = {
-  time: Date
-  price: number
-}
-
-type StockData = {
-  symbol: string
-  data: StockPoint[]
-}
-
-const symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'TSM', 'V', 'JNJ']
-const apiKey = 'B6S0LQO8ZSN31GKX'
-const baseUrl = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=compact'
-
-async function fetchData(): Promise<StockData[]> {
-  try {
-    const responses = await Promise.all(
-      symbols.map((symbol) => fetch(`${baseUrl}&symbol=${symbol}&apikey=${apiKey}`)),
-    )
-
-    responses.forEach((response) => {
-      if (!response.ok) throw new Error(`Request failed with status ${response.status}`)
-    })
-
-    const jsonData = await Promise.all(responses.map((res) => res.json()))
-
-    return symbols.map((symbol, i) => {
-      console.log(jsonData[i])
-      const timeSeries = jsonData[i]['Time Series (Daily)']
-      if (!timeSeries) throw new Error(`Missing time series data for ${symbol}`)
-
-      const data: StockPoint[] = Object.entries(timeSeries).map(([time, values]) => ({
-        time: new Date(time),
-        price: parseFloat((values as any)['4. close']),
-      }))
-
-      data.sort((a, b) => a.time.getTime() - b.time.getTime())
-
-      return { symbol, data }
-    })
-  } catch (error) {
-    console.error('Fetch error:', error)
-    throw error
-  }
-}
-
+import * as data from '@/stockArrays'
+data
 function drawChart(stocks: StockData[]) {
   const width = 1000
   const height = 500
