@@ -68,13 +68,8 @@ const drawChart = async () => {
     .attr('transform', `translate(${margin.left},${margin.top})`)
 
   try {
-    // const response = await fetch(dataLink.value);
-    // const rawData = await response.json();
-
-    const rawData = handleFetch(
-      'function=TIME_SERIES_INTRADAY&symbol=IBM&interval=15min&month=2009-01&outputsize=full&',
-    )
-    console.log('rawData', rawData)
+    const response = await fetch(dataLink.value);
+    const rawData = await response.json();
 
     const data = processData(rawData)
 
