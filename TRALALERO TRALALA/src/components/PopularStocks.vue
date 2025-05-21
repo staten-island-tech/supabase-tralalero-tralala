@@ -7,7 +7,7 @@ import { onMounted } from 'vue'
 import type { StockPoint, StockData } from '@/types/types'
 import * as d3 from 'd3'
 import * as data from '@/stockArrays'
-data
+console.log(data)
 function drawChart(stocks: StockData[]) {
   const width = 1000
   const height = 500
