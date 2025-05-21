@@ -5,7 +5,7 @@
         to="/"
         class="text-2xl font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200"
       >
-        Italy's Finest
+        Italy's Finance
       </router-link>
 
       <div class="flex items-center space-x-4">

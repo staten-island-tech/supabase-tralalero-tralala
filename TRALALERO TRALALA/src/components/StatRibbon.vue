@@ -14,10 +14,11 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../supabase'
 import { useRoute } from 'vue-router'
+import type { AppUser } from '@/types/types'
 
 const route = useRoute()
 const auth = useAuthStore()
-const account = ref<any>(null)
+const account = ref<AppUser | null>(null)
 
 onMounted(async () => {
   account.value = await supabase.from('profiles').select('*').eq('id', route.params.id).single()

@@ -12,3 +12,13 @@ export type AppUser = {
     user: AppUser;
     token: string;
   }
+
+  export type StockPoint = {
+    time: Date
+    price: number
+  }
+  
+  export type StockData = {
+    symbol: string
+    data: StockPoint[]
+  }
