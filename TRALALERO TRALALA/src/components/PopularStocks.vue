@@ -8,6 +8,7 @@ import type { StockPoint, StockData } from '@/types/types'
 import * as d3 from 'd3'
 import * as data from '@/stockArrays'
 console.log(data)
+
 function drawChart(stocks: StockData[]) {
   const width = 1000
   const height = 500
@@ -61,14 +62,7 @@ function drawChart(stocks: StockData[]) {
   svg.append('g').attr('transform', `translate(${margin.left},0)`).call(d3.axisLeft(y))
 }
 
-onMounted(async () => {
-  try {
-    const stockData = await fetchData()
-    drawChart(stockData)
-  } catch (e) {
-    console.error('Error rendering chart:', e)
-  }
-})
+drawChart(data)
 </script>
 
 <style scoped></style>
