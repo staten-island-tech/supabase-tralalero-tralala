@@ -9,6 +9,20 @@ import * as d3 from 'd3'
 import * as data from '@/stockArrays'
 console.log(data)
 
+function transformAlphaVantage(data: any): StockData {
+  const symbol = data['Meta Data']['2. Symbol']
+  const series = data['Time Series (Daily)']
+
+  const points: StockPoint[] = Object.entries(series).map(([dateStr, values]: [string, any]) => ({
+    time: new Date(dateStr),
+    price: parseFloat(values['4. close']),
+  }))
+
+  points.sort((a, b) => a.time.getTime() - b.time.getTime())
+
+  return { symbol, data: points }
+}
+
 function drawChart(stocks: StockData[]) {
   const width = 1000
   const height = 500
@@ -42,7 +56,6 @@ function drawChart(stocks: StockData[]) {
     .domain(stocks.map((s) => s.symbol))
     .range(d3.schemeCategory10)
 
-  // Draw lines
   stocks.forEach((stock) => {
     svg
       .append('path')
@@ -53,7 +66,6 @@ function drawChart(stocks: StockData[]) {
       .attr('d', line)
   })
 
-  // Axes
   svg
     .append('g')
     .attr('transform', `translate(0,${height - margin.bottom})`)
@@ -62,7 +74,10 @@ function drawChart(stocks: StockData[]) {
   svg.append('g').attr('transform', `translate(${margin.left},0)`).call(d3.axisLeft(y))
 }
 
-drawChart(data)
+onMounted(() => {
+  const stockArray: StockData[] = [,].map(transformAlphaVantage)
+  drawChart(stockArray)
+})
 </script>
 
 <style scoped></style>
