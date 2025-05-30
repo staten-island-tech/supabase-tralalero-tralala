@@ -6,17 +6,12 @@
 import { onMounted } from 'vue'
 import type { StockPoint, StockData } from '@/types/types'
 import * as d3 from 'd3'
-import {
-  teslaStockData,
-  appleStockData,
-  amazonStockData,
-  googleStockData,
-  nvidiaStockData,
-} from '@/stockArrays'
+import { stocksData } from '@/stockArrays'
 
-function stockData(data: any): StockData {
-  const symbol = data['Meta Data']['2. Symbol']
-  const series = data['Time Series (Daily)']
+function stockData(): StockData {
+  const symbol = Object.values(stocksData).map((data) => data['Meta Data']['2. Symbol'])
+  console.log(symbol)
+  const series = Object.values(stocksData).map((data) => data['Time Series (Daily)'])
 
   const points: StockPoint[] = Object.entries(series).map(([dateStr, values]: [string, any]) => ({
     time: new Date(dateStr),
@@ -58,15 +53,15 @@ function drawChart(stocks: StockData[]) {
 
   const color = d3
     .scaleOrdinal<string>()
-    .domain(stocks.map((s) => s.symbol))
+    .domain(stocks.map((s, index) => s.symbol[index]))
     .range(d3.schemeCategory10)
 
-  stocks.forEach((stock) => {
+  stocks.forEach((stock, index) => {
     svg
       .append('path')
       .datum(stock.data)
       .attr('fill', 'none')
-      .attr('stroke', color(stock.symbol)!)
+      .attr('stroke', color(stock.symbol[index])!)
       .attr('stroke-width', 1.5)
       .attr('d', line)
   })
@@ -80,14 +75,7 @@ function drawChart(stocks: StockData[]) {
 }
 
 onMounted(() => {
-  const allStocks = [
-    teslaStockData,
-    appleStockData,
-    amazonStockData,
-    googleStockData,
-    nvidiaStockData,
-  ]
-  const stockArray: StockData[] = allStocks.map(stockData)
+  const stockArray: StockData[] = [stocksData].map(stockData)
   drawChart(stockArray)
 })
 </script>
