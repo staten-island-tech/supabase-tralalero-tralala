@@ -8,6 +8,7 @@
 import { defineComponent, onMounted, ref, onBeforeUnmount } from 'vue'
 import * as d3 from 'd3'
 import { handleFetch } from '../handleFetch'
+import { stocksData } from '@/stockArrays'
 
 interface DataPoint {
   date: Date
@@ -30,12 +31,8 @@ let width = 0
 const height = 390 // Fixed height
 const margin = { top: 10, right: 30, bottom: 30, left: 60 }
 
-const dataLink = ref(
-  'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=15min&month=2009-01&outputsize=full&apikey=B6S0LQO8ZSN31GKX',
-)
-
 const processData = (rawData: any): DataPoint[] => {
-  const timeSeries = rawData['Time Series (15min)'] as StockData
+  const timeSeries = rawData['Time Series (Daily)'] as StockData
   return Object.entries(timeSeries)
     .map(([timestamp, values]) => ({
       date: new Date(timestamp),
@@ -68,8 +65,7 @@ const drawChart = async () => {
     .attr('transform', `translate(${margin.left},${margin.top})`)
 
   try {
-    const response = await fetch(dataLink.value);
-    const rawData = await response.json();
+    const rawData = stocksData.AAPL
 
     const data = processData(rawData)
 

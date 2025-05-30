@@ -6,7 +6,7 @@
       v-for="stock in unsoldStocks"
       :key="stock.id"
     >
-      {{ stock.share_amount }} of {{ stock.ticker }} bought at {{ stock.date_bought }}
+      {{ stock.share_amount }} of {{ stock.ticker }} bought on {{ stock.date_bought }}
     </p>
   </div>
 </template>
@@ -35,10 +35,10 @@ onMounted(async () => {
   }
 
   account.value = data
-  console.log(data)
 })
 
 const unsoldStocks = computed(() => {
-  return account.value?.stocks?.filter((s: Stock) => s.time_sold === null) || []
+  console.log(account.value?.stocks)
+  return account.value?.stocks?.filter((s: Stock) => s.date_sold === null)
 })
 </script>

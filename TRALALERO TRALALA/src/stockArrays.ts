@@ -1,4 +1,4 @@
-export const stockData = {
+export const stocksData = {
   TSLA: {
     'Meta Data': {
       '1. Information': 'Daily Prices (open, high, low, close) and Volumes',

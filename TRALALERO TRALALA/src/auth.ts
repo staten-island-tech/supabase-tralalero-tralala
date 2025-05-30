@@ -25,6 +25,8 @@ export const signUp = async (credentials: LoginRequest): Promise<LoginResponse> 
       user: {
         id: data.user.id,
         email: data.user.email ?? '',
+        balance: 0,
+        stocks: []
       },
       token: data.session.access_token,
     };
@@ -59,6 +61,8 @@ export const logIn = async (credentials: LoginRequest): Promise<LoginResponse> =
       user: {
         id: data.user.id,
         email: data.user.email ?? '',
+        balance: 0,
+        stocks: []
       },
       token: data.session.access_token,
     };
