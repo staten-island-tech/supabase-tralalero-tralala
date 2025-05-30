@@ -60,7 +60,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { logIn } from '../auth'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
