@@ -26,7 +26,6 @@ export type StockData = {
 }
 
 export interface Stock {
-  id: string
   ticker: string
   share_amount: number
   date_bought: string

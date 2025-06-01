@@ -1,33 +1,104 @@
 <template>
   <div>
-    <h2 class="text-xl font-semibold text-gray-800 m-4 p-2 border-gray-200">Porfolio Graph:</h2>
+    <h2 class="text-xl font-semibold text-gray-800 m-4 mb-2 p-2 border-gray-200">
+      Porfolio Graph:
+    </h2>
+    <GraphMenu @update:selected="handleSelection" />
     <div ref="chartContainer" class="bg-white rounded-lg shadow w-full"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, onMounted, ref, onBeforeUnmount } from 'vue'
+import { onMounted, ref, onBeforeUnmount, computed, watch } from 'vue'
 import * as d3 from 'd3'
-import { handleFetch } from '../handleFetch'
-import { stocksData } from '@/stockArrays'
-import type { DailyStockData, StockPoint } from '@/types/types'
+import type { DailyStockData, StockPoint, Stock, StocksData } from '@/types/types'
+import GraphMenu from '@/components/GraphMenu.vue'
+import { stocksData as rawStocksData } from '@/stockArrays'
+
+const stocksData = rawStocksData as StocksData
+
+const props = defineProps<{
+  stocks: Stock[] | null
+  balance: number | null
+}>()
+
+function getTotal(stocks: Stock[] | null, balance: number | null, date: string): number {
+  let stockValue = 0
+
+  ;(stocks || []).forEach((stock) => {
+    if (
+      stock.date_bought &&
+      stock.date_bought <= date &&
+      (stock.date_sold === null || stock.date_sold > date)
+    ) {
+      const tickerData = stocksData[stock.ticker]
+      if (tickerData) {
+        const dailyData = tickerData['Time Series (Daily)']
+
+        let foundDate = date
+        while (!dailyData[foundDate] && foundDate > stock.date_bought) {
+          const dateObj = new Date(foundDate)
+          dateObj.setDate(dateObj.getDate() - 1)
+          foundDate = dateObj.toISOString().split('T')[0]
+        }
+
+        if (dailyData[foundDate]) {
+          const currentPrice = parseFloat(dailyData[foundDate]['4. close'])
+          stockValue += currentPrice * stock.share_amount
+        }
+      }
+    }
+  })
+
+  const total = stockValue
+  return total
+}
+
+function generatePastDates(daysBack: number): string[] {
+  const dates: string[] = []
+  const today = new Date()
+
+  for (let i = 0; i <= daysBack; i++) {
+    const pastDate = new Date(today)
+    pastDate.setDate(today.getDate() - i)
+
+    const year = pastDate.getFullYear()
+    const month = String(pastDate.getMonth() + 1).padStart(2, '0')
+    const day = String(pastDate.getDate()).padStart(2, '0')
+
+    dates.push(`${year}-${month}-${day}`)
+  }
+
+  return dates
+}
+
+const selectedValue = ref<number | null>(7)
+
+const doneList = computed<StockPoint[]>(() => {
+  if (selectedValue.value === null) return []
+  const dates = generatePastDates(selectedValue.value)
+  return dates
+    .map((date, idx) => {
+      const isToday = idx === 0
+      const total = getTotal(props.stocks, isToday ? props.balance : 0, date)
+      return {
+        date: new Date(date),
+        price: total,
+      }
+    })
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+})
+
+const handleSelection = (id: number) => {
+  selectedValue.value = id
+}
 
 const chartContainer = ref<HTMLElement | null>(null)
 let resizeObserver: ResizeObserver | null = null
 let svg: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let width = 0
 const height = 390
-const margin = { top: 10, right: 30, bottom: 30, left: 60 }
-
-const processData = (rawData: any): StockPoint[] => {
-  const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
-  return Object.entries(timeSeries)
-    .map(([timestamp, values]) => ({
-      date: new Date(timestamp),
-      price: parseFloat(values['4. close']),
-    }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
-}
+const margin = { top: 10, right: 45, bottom: 30, left: 60 }
 
 const drawChart = async () => {
   if (!chartContainer.value) return
@@ -49,62 +120,51 @@ const drawChart = async () => {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`)
 
-  try {
-    const rawData = stocksData.AAPL
+  const data = doneList.value
 
-    const data = processData(rawData)
+  if (!data || !svg || data.length === 0) return
 
-    if (!data || !svg) return
+  const extent = d3.extent(data, (d: StockPoint) => d.date)
+  if (!extent[0] || !extent[1]) return
 
-    const x = d3
-      .scaleTime()
-      .domain(d3.extent(data, (d) => d.date) as [Date, Date])
-      .range([0, width])
+  const x = d3.scaleTime().domain([extent[0], extent[1]]).range([0, width])
 
-    svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x))
+  svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x))
 
-    const y = d3
-      .scaleLinear()
-      .domain([
-        (d3.min(data, (d) => d.price) as number) * 0.95,
-        (d3.max(data, (d) => d.price) as number) * 1.05,
-      ])
-      .range([height, 0])
+  const y = d3
+    .scaleLinear()
+    .domain([
+      (d3.min(data, (d) => d.price) as number) * 0.95,
+      (d3.max(data, (d) => d.price) as number) * 1.05,
+    ])
+    .range([height, 0])
 
-    svg.append('g').call(d3.axisLeft(y))
+  svg.append('g').call(d3.axisLeft(y))
 
-    svg
-      .append('path')
-      .datum(data)
-      .attr('fill', 'none')
-      .attr('stroke', 'steelblue')
-      .attr('stroke-width', 1.5)
-      .attr(
-        'd',
-        d3
-          .line<StockPoint>()
-          .x((d) => x(d.date))
-          .y((d) => y(d.price)),
-      )
-
-    svg
-      .append('g')
-      .selectAll('dot')
-      .data(data)
-      .enter()
-      .append('circle')
-      .attr('cx', (d) => x(d.date))
-      .attr('cy', (d) => y(d.price))
-      .attr('r', 2)
-      .attr('fill', 'steelblue')
-  } catch (error) {
-    console.error('Error loading or processing data:', error)
-  }
+  svg
+    .append('path')
+    .datum(data)
+    .attr('fill', 'none')
+    .attr('stroke', 'black')
+    .attr('stroke-width', 1.5)
+    .attr(
+      'd',
+      d3
+        .line<StockPoint>()
+        .x((d) => x(d.date))
+        .y((d) => y(d.price)),
+    )
 }
 
-onMounted(() => {
-  drawChart()
+watch(
+  [doneList, chartContainer],
+  () => {
+    drawChart()
+  },
+  { immediate: true, deep: true },
+)
 
+onMounted(() => {
   if (chartContainer.value) {
     resizeObserver = new ResizeObserver(() => {
       drawChart()
