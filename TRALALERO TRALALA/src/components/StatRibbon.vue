@@ -1,25 +1,29 @@
 <template>
-  <div class="bg-white border-b border-gray-200 p-7">
-    <p>Purchasing Power: ${{ account?.balance }}</p>
-    <p>Owned Stocks:</p>
-    <p
-      v-for="stock in unsoldStocks"
-      :key="stock.id"
-    >
-      {{ stock.share_amount }} of {{ stock.ticker }} bought on {{ stock.date_bought }}
-    </p>
+  <div>
+    <div class="bg-white border-b border-gray-200 p-7">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-2 border-gray-200">
+        Value Information:
+      </h2>
+      <p class="text-lg">Portfolio Value (including PP): ${{ totalValue }}</p>
+      <p class="text-lg mb-1">Purchasing Power: ${{ account?.balance }}</p>
+    </div>
+    <div class="bg-white border-b border-gray-200 p-7">
+      <OwnedStocks :ownedStocks="account?.stocks || []" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from '../stores/authStore'
-import { supabase } from '../supabase'
+import OwnedStocks from '@/components/OwnedStocks.vue'
+import { supabase } from '@/supabase'
 import { useRoute } from 'vue-router'
-import type { AppUser, Stock } from '@/types/types'
+import type { AppUser, Stock, StocksData } from '@/types/types'
+import { stocksData as rawStocksData } from '@/stockArrays'
+
+const stocksData = rawStocksData as StocksData
 
 const route = useRoute()
-const auth = useAuthStore()
 const account = ref<AppUser | null>(null)
 
 onMounted(async () => {
@@ -37,8 +41,30 @@ onMounted(async () => {
   account.value = data
 })
 
-const unsoldStocks = computed(() => {
-  console.log(account.value?.stocks)
-  return account.value?.stocks?.filter((s: Stock) => s.date_sold === null)
+const unsoldStocks = computed<Stock[] | null>(() => {
+  if (!account.value?.stocks) return null
+  return account.value.stocks.filter((s: Stock) => s.date_sold === null)
+})
+
+const totalValue = computed(() => {
+  if (!account.value) return '0.00'
+
+  let stockValue = 0
+
+  ;(unsoldStocks.value || []).forEach((stock) => {
+    const tickerData = stocksData[stock.ticker]
+    if (tickerData) {
+      const days = Object.keys(tickerData['Time Series (Daily)'])
+      const mostRecentDay = days[0]
+      const mostRecentData = tickerData['Time Series (Daily)'][mostRecentDay]
+
+      if (mostRecentData) {
+        const currentPrice = parseFloat(mostRecentData['4. close'])
+        stockValue += currentPrice * stock.share_amount
+      }
+    }
+  })
+
+  return (stockValue + (account.value.balance || 0)).toFixed(2)
 })
 </script>

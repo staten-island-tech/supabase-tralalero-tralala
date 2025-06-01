@@ -70,18 +70,18 @@
           </transition>
         </div>
         <div v-else class="flex space-x-4">
-          <router-link
-            to="/signup"
-            class="px-4 py-2 text-gray-700 font-medium rounded-md hover:bg-gray-100 transition-colors duration-200"
+          <button
+            @click="router.push({ path: '/signup', replace: true })"
+            class="px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors duration-200"
           >
             Sign Up
-          </router-link>
-          <router-link
-            to="/login"
+          </button>
+          <button
+            @click="router.push({ path: '/login', replace: true })"
             class="px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors duration-200"
           >
             Log In
-          </router-link>
+          </button>
         </div>
       </div>
     </nav>
@@ -91,6 +91,9 @@
 <script setup lang="ts">
 import { useAuthStore } from '../stores/authStore'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const auth = useAuthStore()
 

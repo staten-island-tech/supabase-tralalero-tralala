@@ -1,6 +1,6 @@
 <template>
   <div class="bg-white border-b border-gray-200 p-7">
-    <h1 class="text-[min(5vw,1.5rem)] max-w-fit">{{ account?.data?.id }}</h1>
+    <h1 class="text-[min(5vw,1.5rem)] max-w-fit">{{ account?.id }}</h1>
   </div>
 </template>
 
@@ -16,6 +16,14 @@ const auth = useAuthStore()
 const account = ref<AppUser | null>(null)
 
 onMounted(async () => {
-  account.value = await supabase.from('profiles').select('*').eq('id', route.params.id).single()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', route.params.id)
+    .single()
+
+  if (data && !error) {
+    account.value = data
+  }
 })
 </script>

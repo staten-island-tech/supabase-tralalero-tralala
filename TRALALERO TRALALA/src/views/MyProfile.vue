@@ -1,5 +1,5 @@
 <template>
-  <div><ProfileRibbon /><StatRibbon /><D3Test /></div>
+  <div><ProfileRibbon /><StatRibbon /><PortfolioGraph /></div>
 </template>
 
 <script setup lang="ts">
@@ -8,7 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import ProfileRibbon from '@/components/ProfileRibbon.vue'
 import StatRibbon from '@/components/StatRibbon.vue'
-import D3Test from '@/components/D3Test.vue'
+import PortfolioGraph from '@/components/PortfolioGraph.vue'
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()

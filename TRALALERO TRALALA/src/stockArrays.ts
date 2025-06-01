@@ -710,7 +710,6 @@ export const stocksData = {
       },
     },
   },
-
   AMZN: {
     'Meta Data': {
       '1. Information': 'Daily Prices (open, high, low, close) and Volumes',
@@ -2133,7 +2132,6 @@ export const stocksData = {
       },
     },
   },
-
   GOOGL: {
     'Meta Data': {
       '1. Information': 'Daily Prices (open, high, low, close) and Volumes',
