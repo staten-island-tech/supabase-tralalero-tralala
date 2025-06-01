@@ -129,7 +129,13 @@ const drawChart = async () => {
 
   const x = d3.scaleTime().domain([extent[0], extent[1]]).range([0, width])
 
-  svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x))
+  // Improved x-axis configuration
+  const xAxis = d3
+    .axisBottom(x)
+    .ticks(selectedValue.value === 90 ? 6 : selectedValue.value === 30 ? 5 : 3) // Approximate number of ticks we want
+    .tickFormat(d3.timeFormat('%b %d'))
+
+  svg.append('g').attr('transform', `translate(0,${height})`).call(xAxis)
 
   const y = d3
     .scaleLinear()

@@ -2,7 +2,11 @@
   <div>
     <div v-if="sold == null" class="bg-white rounded-lg shadow p-4 border border-gray-200 m-4">
       <div class="flex items-center justify-between">
-        <span class="font-bold text-lg">{{ stock.ticker }}</span>
+        <span
+          @click="router.push({ path: `/stock/${stock.ticker}`, replace: true })"
+          class="font-bold text-lg"
+          >{{ stock.ticker }}</span
+        >
         <span class="text-gray-500 text-sm">{{ stock.date_bought }}</span>
       </div>
       <div class="mt-2">
@@ -28,6 +32,8 @@
 
 <script setup lang="ts">
 import type { Stock } from '@/types/types'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 defineProps<{
   stock: Stock

@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import OwnedStocks from '@/components/OwnedStocks.vue'
-import type { Stock, StocksData } from '@/types/types'
+import type { Stock } from '@/types/types'
 
 defineProps<{
   balance: number

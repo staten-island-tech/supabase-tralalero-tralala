@@ -1,11 +1,16 @@
 <template>
   <div>
-    <ProfileRibbon /><StatRibbon
-      :balance="account?.balance ?? 0"
-      :unsoldStocks="unsoldStocks"
-      :totalValue="totalValue"
-      :stocks="account?.stocks ?? null"
-    /><PortfolioGraph :balance="account?.balance ?? 0" :stocks="account?.stocks ?? null" />
+    <div v-if="account">
+      <ProfileRibbon /><StatRibbon
+        :balance="account?.balance ?? 0"
+        :unsoldStocks="unsoldStocks"
+        :totalValue="totalValue"
+        :stocks="account?.stocks ?? null"
+      /><PortfolioGraph :balance="account?.balance ?? 0" :stocks="account?.stocks ?? null" />
+    </div>
+    <div v-else class="flex items-center justify-center h-screen">
+      <p class="text-black">Profile not found.</p>
+    </div>
   </div>
 </template>
 
