@@ -4,9 +4,11 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import type { StockPoint, StockData } from '@/types/types'
+import { StockPoint, StockData } from '@/types/types'
 import * as d3 from 'd3'
-import { stockData as stockDataRaw } from '@/stockArrays'
+import { stocksData as stockDataRaw } from '@/stockArrays'
+
+const stocksData = StockDataRaw as stocksData
 
 function stockData(): StockData {
   const symbol = Object.values(stocksData).map((data) => data['Meta Data']['2. Symbol'])
