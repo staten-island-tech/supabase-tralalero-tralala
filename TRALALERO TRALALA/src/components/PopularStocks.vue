@@ -4,11 +4,11 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { StockPoint, StockData } from '@/types/types'
+import type { StockPoint, StockData, StocksData } from '@/types/types'
 import * as d3 from 'd3'
 import { stocksData as stockDataRaw } from '@/stockArrays'
 
-const stocksData = StockDataRaw as stocksData
+const stocksData = stockDataRaw as StocksData
 
 function stockData(): StockData {
   const symbol = Object.values(stocksData).map((data) => data['Meta Data']['2. Symbol'])
@@ -16,11 +16,11 @@ function stockData(): StockData {
   const series = Object.values(stocksData).map((data) => data['Time Series (Daily)'])
 
   const points: StockPoint[] = Object.entries(series).map(([dateStr, values]: [string, any]) => ({
-    time: new Date(dateStr),
+    date: new Date(dateStr),
     price: parseFloat(values['4. close']),
   }))
 
-  points.sort((a, b) => a.time.getTime() - b.time.getTime())
+  points.sort((a, b) => a.date.getTime() - b.date.getTime())
 
   return { symbol, data: points }
 }
