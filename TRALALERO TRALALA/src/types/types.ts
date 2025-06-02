@@ -1,5 +1,6 @@
 export interface AppUser {
   id: string
+  email: string
   balance: number
   stocks: Stock[]
 }
@@ -15,7 +16,7 @@ export type LoginResponse = {
 }
 
 export type StockPoint = {
-  time: Date
+  date: Date
   price: number
 }
 
@@ -25,9 +26,45 @@ export type StockData = {
 }
 
 export interface Stock {
-  id: string
   ticker: string
   share_amount: number
   date_bought: string
-  time_sold: string | null
+  date_sold: string | null
+}
+
+export type StocksData = {
+  [ticker: string]: {
+    'Meta Data': {
+      '1. Information': string
+      '2. Symbol': string
+      '3. Last Refreshed': string
+      '4. Output Size': string
+      '5. Time Zone': string
+    }
+    'Time Series (Daily)': {
+      [date: string]: {
+        '1. open': string
+        '2. high': string
+        '3. low': string
+        '4. close': string
+        '5. volume': string
+      }
+    }
+  }
+}
+
+export type StockArrayObj = {
+  [ticker: string]: {
+    StocksData: StockData
+  }
+}
+
+export interface DailyStockData {
+  [timestamp: string]: {
+    '1. open': string
+    '2. high': string
+    '3. low': string
+    '4. close': string
+    '5. volume': string
+  }
 }

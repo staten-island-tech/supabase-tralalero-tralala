@@ -6,6 +6,6 @@ import NavRibbon from '@/components/NavRibbon.vue'
 <template>
   <nav>
     <NavRibbon />
-    <RouterView />
+    <RouterView :key="$route.fullPath" />
   </nav>
 </template>

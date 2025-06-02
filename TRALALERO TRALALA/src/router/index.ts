@@ -22,10 +22,13 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/LogIn.vue'),
-    }
+    },
+    {
+      path: '/stock/:ticker?',
+      name: 'stockInfo',
+      component: () => import('../views/StockInfo.vue'),
+    },
   ],
 })
 
 export default router
-
-

@@ -36,7 +36,7 @@ function drawChart(stocks: StockData[]) {
 
   const x = d3
     .scaleTime()
-    .domain(d3.extent(allData, (d: StockPoint) => d.time) as [Date, Date])
+    .domain(d3.extent(allData, (d: StockPoint) => d.date) as [Date, Date])
     .range([margin.left, width - margin.right])
 
   const y = d3
@@ -50,7 +50,7 @@ function drawChart(stocks: StockData[]) {
 
   const line = d3
     .line<StockPoint>()
-    .x((d: StockPoint) => x(d.time))
+    .x((d: StockPoint) => x(d.date))
     .y((d: StockPoint) => y(d.price))
 
   const color = d3
