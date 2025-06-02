@@ -6,7 +6,7 @@
 import { onMounted } from 'vue'
 import type { StockPoint, StockData } from '@/types/types'
 import * as d3 from 'd3'
-import { stocksData } from '@/stockArrays'
+import { stockData as stockDataRaw } from '@/stockArrays'
 
 function stockData(): StockData {
   const symbol = Object.values(stocksData).map((data) => data['Meta Data']['2. Symbol'])
@@ -75,7 +75,7 @@ function drawChart(stocks: StockData[]) {
 }
 
 onMounted(() => {
-  const stockArray: StockData[] = [stocksData].map(stockData)
+  const stockArray: StockData[] = Object.values(stockDataRaw).map(stockData)
   drawChart(stockArray)
 })
 </script>
