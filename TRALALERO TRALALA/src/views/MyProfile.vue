@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="account">
+    <div v-if="account?.id">
       <ProfileRibbon /><StatRibbon
         :balance="account?.balance ?? 0"
         :unsoldStocks="unsoldStocks"
@@ -48,6 +48,7 @@ onMounted(async () => {
   }
 
   account.value = data
+  console.log(account)
 })
 
 const unsoldStocks = computed<Stock[] | null>(() => {

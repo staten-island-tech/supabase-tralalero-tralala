@@ -79,7 +79,6 @@ const stocksData = rawStocksData as StocksData
 
 const account = ref<AppUser | null>(null)
 const auth = useAuthStore()
-console.log('Auth Store:', auth.id)
 const amount = ref<number | null>(null)
 const isLoading = ref<'buy' | 'sell' | null>(null)
 const errorMessage = ref<string>()
