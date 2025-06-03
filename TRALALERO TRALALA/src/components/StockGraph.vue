@@ -13,7 +13,7 @@ import type { DailyStockData, StockPoint } from '@/types/types'
 import GraphMenu from '@/components/GraphMenu.vue'
 
 const props = defineProps<{
-  ticker: string
+  ticker: keyof typeof stocksData
 }>()
 
 const selectedValue = ref<number | null>(7)

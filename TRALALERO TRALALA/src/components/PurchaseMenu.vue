@@ -73,6 +73,7 @@ import { stocksData as rawStocksData } from '@/stockArrays'
 import { useAuthStore } from '../stores/authStore'
 import type { AppUser, StocksData } from '@/types/types'
 import { useRoute } from 'vue-router'
+import { elements } from 'chart.js'
 const route = useRoute()
 
 const stocksData = rawStocksData as StocksData
@@ -80,7 +81,7 @@ const stocksData = rawStocksData as StocksData
 const account = ref<AppUser | null>(null)
 const auth = useAuthStore()
 console.log('Auth Store:', auth.id)
-const amount = ref<number | null>(null)
+const amount = ref<number>(null)
 const isLoading = ref<'buy' | 'sell' | null>(null)
 const errorMessage = ref<string>()
 const successMessage = ref<string>()
@@ -114,6 +115,15 @@ const handleBuy = async () => {
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
+  }
+  try {
+    if (account.value?.balance) {
+      throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
+    } else {
+      amount.value
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 
