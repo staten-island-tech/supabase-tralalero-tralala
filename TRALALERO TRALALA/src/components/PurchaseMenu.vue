@@ -80,9 +80,9 @@ const stocksData = rawStocksData as StocksData
 const account = ref<AppUser | null>(null)
 const auth = useAuthStore()
 console.log('Auth Store:', auth.id)
-const amount = ref<number | null>(null)
+const amount = ref<number>(0)
 const isLoading = ref<'buy' | 'sell' | null>(null)
-const errorMessage = ref<string>()
+const errorMessage = ref<string | null>(null)
 const successMessage = ref<string>()
 
 const today = new Date()
@@ -103,6 +103,58 @@ onMounted(async () => {
   account.value = data
 })
 
+const processData = (rawData: any, daysBack: number): StockPoint[] => {
+  const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Normalize to start of day
+
+  const cutoffDate = getDateNDaysAgo(daysBack)
+
+  // Convert to array and filter dates
+  let data = Object.entries(timeSeries)
+    .map(([timestamp, values]) => ({
+      date: new Date(timestamp),
+      price: parseFloat(values['4. close']),
+    }))
+    .filter((d) => d.date < today && d.date >= cutoffDate)
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+
+  // If we don't have enough data points, fill in with nearest available data
+  if (data.length < daysBack) {
+    const allDates = Object.keys(timeSeries)
+      .map((d) => new Date(d))
+      .sort((a, b) => a.getTime() - b.getTime())
+
+    const filledData: StockPoint[] = []
+    for (let i = 0; i < daysBack; i++) {
+      const targetDate = getDateNDaysAgo(i)
+      // Find the first date that's equal or after targetDate
+      const foundDate = allDates.find((d) => d >= targetDate)
+      if (foundDate) {
+        const existingPoint = data.find((d) => d.date.getTime() === foundDate.getTime())
+        if (existingPoint) {
+          filledData.unshift(existingPoint)
+        } else {
+          // If not in our filtered data, get it from raw data
+          const dateStr = foundDate.toISOString().split('T')[0]
+          if (timeSeries[dateStr]) {
+            filledData.unshift({
+              date: foundDate,
+              price: parseFloat(timeSeries[dateStr]['4. close']),
+            })
+          }
+        }
+      }
+    }
+    // Remove duplicates and sort
+    data = filledData
+      .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+  }
+
+  return data
+}
+
 const handleBuy = async () => {
   if (!isValidAmount.value) return
 
@@ -115,6 +167,12 @@ const handleBuy = async () => {
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
   }
+
+  /*   try {
+    if (account.value?.balance < amount.value*)
+  } 
+  i really hate this just gab the price from the data above and like put in the price should be easy but you are a doofus dingus dummy  
+  */
 }
 
 const handleSell = async () => {
