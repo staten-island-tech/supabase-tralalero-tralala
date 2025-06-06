@@ -150,13 +150,13 @@
           <div v-else class="flex space-x-4">
             <button
               @click="router.push({ path: '/signup', replace: true })"
-              class="px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors duration-200"
+              class="px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
             >
               Sign Up
             </button>
             <button
               @click="router.push({ path: '/login', replace: true })"
-              class="px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors duration-200"
+              class="px-4 py-2 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
             >
               Log In
             </button>

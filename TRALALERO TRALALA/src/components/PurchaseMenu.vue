@@ -81,7 +81,7 @@ const stocksData = rawStocksData as StocksData
 const account = ref<AppUser | null>(null)
 const auth = useAuthStore()
 console.log('Auth Store:', auth.id)
-const amount = ref<number>(null)
+const amount = ref<number>(0)
 const isLoading = ref<'buy' | 'sell' | null>(null)
 const errorMessage = ref<string>()
 const successMessage = ref<string>()
@@ -109,6 +109,9 @@ const handleBuy = async () => {
 
   errorMessage.value = ''
 
+  const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
+  const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
+
   try {
     if (amount.value <= 0) {
       throw new Error('Amount must be greater than zero')
@@ -120,7 +123,28 @@ const handleBuy = async () => {
     if (account.value?.balance) {
       throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
     } else {
-      amount.value
+      const stockTotalPrice =
+        amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
+      if (account.value?.balance ?? 0 < stockTotalPrice) {
+        console.error('Insufficient balance for this purchase')
+      } else {
+        const { data, error } = await supabase
+          .from('stocks')
+          .insert({
+            ticker: ticker,
+            share_amount: amount.value,
+            date_bought: date,
+            user_id: auth.id,
+          })
+          .select()
+
+        if (error) {
+          throw error
+        }
+
+        successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
+        console.log('Buy order successful:', data)
+      }
     }
   } catch (error) {
     console.log(error)
