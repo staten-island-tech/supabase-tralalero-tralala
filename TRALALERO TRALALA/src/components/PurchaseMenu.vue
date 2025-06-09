@@ -132,7 +132,7 @@ const handleBuy = async () => {
           .from('stocks')
           .insert({
             ticker: ticker,
-            share_amount: amount.value,
+            amount: amount.value,
             date_bought: date,
             user_id: auth.id,
           })
