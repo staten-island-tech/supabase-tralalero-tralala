@@ -13,7 +13,7 @@ import type { DailyStockData, StockPoint } from '@/types/types'
 import GraphMenu from '@/components/GraphMenu.vue'
 
 const props = defineProps<{
-  ticker: string
+  ticker: keyof typeof stocksData
 }>()
 
 const selectedValue = ref<number | null>(7)
@@ -84,7 +84,7 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
       .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }
-
+  console.log(data)
   return data
 }
 
@@ -111,7 +111,6 @@ const drawChart = async () => {
   try {
     const rawData = stocksData[props.ticker]
     const data = processData(rawData, selectedValue.value)
-
     if (!data || !svg || data.length === 0) return
 
     const x = d3

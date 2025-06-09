@@ -21,7 +21,7 @@ export type StockPoint = {
 }
 
 export type StockData = {
-  symbol: string
+  symbol: string[]
   data: StockPoint[]
 }
 
