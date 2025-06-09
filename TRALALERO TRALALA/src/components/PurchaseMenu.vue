@@ -171,22 +171,21 @@ const handleBuy = async () => {
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
   }
+
   try {
-    if (account.value?.balance) {
-      throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
-    } else {
-      const stockTotalPrice =
+    const stockTotalPrice =
         amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
       if (account.value?.balance ?? 0 < stockTotalPrice) {
         console.error('Insufficient balance for this purchase')
-      } else {
+    } else {
         const { data, error } = await supabase
           .from('stocks')
           .insert({
             ticker: ticker,
             amount: amount.value,
             date_bought: date,
-            user_id: auth.id,
+            date_sold: null,
+            id: auth.id,
           })
           .select()
 
@@ -198,10 +197,10 @@ const handleBuy = async () => {
         console.log('Buy order successful:', data)
       }
     }
-  } catch (error) {
+   catch (error) {
     console.log(error)
   }
-}
+
 
 const handleSell = async () => {
   if (!isValidAmount.value) return
