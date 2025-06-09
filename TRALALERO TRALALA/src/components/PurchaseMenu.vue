@@ -7,7 +7,9 @@
       <p class="text-white font-medium">Please log in to trade</p>
     </div>
 
+
     <h2 class="text-xl font-medium mb-4 text-gray-900">Trade Menu</h2>
+
 
     <div class="">
       <div class="mb-2">
@@ -38,6 +40,7 @@
         />
       </div>
 
+
       <div class="flex space-x-3">
         <button
           @click="handleBuy"
@@ -47,6 +50,7 @@
           Buy
         </button>
 
+
         <button
           @click="handleSell"
           :disabled="!isValidAmount || !auth.id"
@@ -55,6 +59,7 @@
           Sell
         </button>
       </div>
+
 
       <div
         v-if="errorMessage"
@@ -66,6 +71,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/supabase'
@@ -73,41 +79,53 @@ import { stocksData as rawStocksData } from '@/stockArrays'
 import { useAuthStore } from '../stores/authStore'
 import type { AppUser, StocksData } from '@/types/types'
 import { useRoute } from 'vue-router'
+import { elements } from 'chart.js'
 const route = useRoute()
+
 
 const stocksData = rawStocksData as StocksData
 
+
 const account = ref<AppUser | null>(null)
 const auth = useAuthStore()
-const amount = ref<number | null>(null)
+console.log('Auth Store:', auth.id)
+const amount = ref<number>(0)
 const isLoading = ref<'buy' | 'sell' | null>(null)
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string>()
 
+
 const today = new Date()
 const formattedDate = ref(today.toISOString().split('T')[0])
+
 
 const isValidAmount = computed(() => {
   return amount.value !== null && amount.value > 0
 })
 
+
 onMounted(async () => {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', auth.id).single()
+
 
   if (error) {
     console.error('Error fetching account:', error)
     return
   }
 
+
   account.value = data
 })
+
 
 const processData = (rawData: any, daysBack: number): StockPoint[] => {
   const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
   const today = new Date()
   today.setHours(0, 0, 0, 0) // Normalize to start of day
 
+
   const cutoffDate = getDateNDaysAgo(daysBack)
+
 
   // Convert to array and filter dates
   let data = Object.entries(timeSeries)
@@ -118,11 +136,13 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
     .filter((d) => d.date < today && d.date >= cutoffDate)
     .sort((a, b) => a.date.getTime() - b.date.getTime())
 
+
   // If we don't have enough data points, fill in with nearest available data
   if (data.length < daysBack) {
     const allDates = Object.keys(timeSeries)
       .map((d) => new Date(d))
       .sort((a, b) => a.getTime() - b.getTime())
+
 
     const filledData: StockPoint[] = []
     for (let i = 0; i < daysBack; i++) {
@@ -151,13 +171,21 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }
 
+
   return data
 }
+
 
 const handleBuy = async () => {
   if (!isValidAmount.value) return
 
+
   errorMessage.value = ''
+
+
+  const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
+  const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
+
 
   try {
     if (amount.value <= 0) {
@@ -166,18 +194,48 @@ const handleBuy = async () => {
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
   }
+  try {
+    const stockTotalPrice =
+        amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
+    if (account.value?.balance < stockTotalPrice) {
+      throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
+    } else {
+      if (account.value?.balance ?? 0 < stockTotalPrice) {
+        console.error('Insufficient balance for this purchase')
+      } else {
+        const { data, error } = await supabase
+          .from('stocks')
+          .insert({
+            ticker: ticker,
+            amount: amount.value,
+            date_bought: date,
+            date_sold: null,
+            id: auth.id,
+          })
+          .select()
 
-  /*   try {
-    if (account.value?.balance < amount.value*)
-  } 
-  i really hate this just gab the price from the data above and like put in the price should be easy but you are a doofus dingus dummy  
-  */
+
+        if (error) {
+          throw error
+        }
+
+
+        successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
+        console.log('Buy order successful:', data)
+      }
+    }
+  } catch (error) {
+    console.log(error)
+  }
 }
+
 
 const handleSell = async () => {
   if (!isValidAmount.value) return
 
+
   errorMessage.value = ''
+
 
   try {
   } catch (error) {
@@ -185,3 +243,8 @@ const handleSell = async () => {
   }
 }
 </script>
+
+
+
+
+
