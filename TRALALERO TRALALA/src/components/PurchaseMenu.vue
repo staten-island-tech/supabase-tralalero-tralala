@@ -110,65 +110,13 @@ onMounted(async () => {
   account.value = data
 })
 
-const processData = (rawData: any, daysBack: number): StockPoint[] => {
-  const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Normalize to start of day
-
-  const cutoffDate = getDateNDaysAgo(daysBack)
-
-  // Convert to array and filter dates
-  let data = Object.entries(timeSeries)
-    .map(([timestamp, values]) => ({
-      date: new Date(timestamp),
-      price: parseFloat(values['4. close']),
-    }))
-    .filter((d) => d.date < today && d.date >= cutoffDate)
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
-
-  // If we don't have enough data points, fill in with nearest available data
-  if (data.length < daysBack) {
-    const allDates = Object.keys(timeSeries)
-      .map((d) => new Date(d))
-      .sort((a, b) => a.getTime() - b.getTime())
-
-    const filledData: StockPoint[] = []
-    for (let i = 0; i < daysBack; i++) {
-      const targetDate = getDateNDaysAgo(i)
-      // Find the first date that's equal or after targetDate
-      const foundDate = allDates.find((d) => d >= targetDate)
-      if (foundDate) {
-        const existingPoint = data.find((d) => d.date.getTime() === foundDate.getTime())
-        if (existingPoint) {
-          filledData.unshift(existingPoint)
-        } else {
-          // If not in our filtered data, get it from raw data
-          const dateStr = foundDate.toISOString().split('T')[0]
-          if (timeSeries[dateStr]) {
-            filledData.unshift({
-              date: foundDate,
-              price: parseFloat(timeSeries[dateStr]['4. close']),
-            })
-          }
-        }
-      }
-    }
-    // Remove duplicates and sort
-    data = filledData
-      .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-  }
-
-  return data
-}
+const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
+const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
 
 const handleBuy = async () => {
   if (!isValidAmount.value) return
 
   errorMessage.value = ''
-
-  const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
-  const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
 
   try {
     if (amount.value <= 0) {
@@ -180,8 +128,9 @@ const handleBuy = async () => {
   try {
     const stockTotalPrice =
       amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
-    if (account.value?.balance < stockTotalPrice) {
-      throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
+
+    if (account.value?.balance! < stockTotalPrice) {
+      console.error('Insufficient balance for this purchase')
     } else {
       const supabaseStocksAmount = await supabase
         .from('stocks')
@@ -199,27 +148,26 @@ const handleBuy = async () => {
         })
         .eq('id', auth.id)
         .select('balance')
-      if (account.value?.balance ?? 0 < stockTotalPrice) {
-        console.error('Insufficient balance for this purchase')
-      } else {
-        const { data, error } = await supabase
-          .from('stocks')
-          .insert({
-            ticker: ticker,
-            amount: amount.value,
-            date_bought: date,
-            date_sold: null,
-            id: auth.id,
-          })
-          .select()
 
-        if (error) {
-          throw error
-        }
+      const { data, error } = await supabase
+        .from('stocks')
+        .upsert({
+          ticker: ticker,
+          amount: totalAmount,
+          date_bought: date,
+          date_sold: null,
+          id: auth.id,
+        })
+        .select()
 
-        successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
-        console.log('Buy order successful:', data)
+      account.value!.balance -= stockTotalPrice
+
+      if (error) {
+        throw error
       }
+
+      successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
+      console.log('Buy order successful:', data)
     }
   } catch (error) {
     console.log(error)
@@ -235,8 +183,6 @@ const handleSell = async () => {
     if (amount.value <= 0) {
       throw new Error('Amount must be greater than zero')
     }
-    const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
-    const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
 
     const supabaseStocksAmount = await supabase
       .from('stocks')
