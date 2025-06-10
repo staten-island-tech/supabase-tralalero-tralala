@@ -5,8 +5,8 @@
         :balance="account?.balance ?? 0"
         :unsoldStocks="unsoldStocks"
         :totalValue="totalValue"
-        :stocks="account?.stocks ?? null"
-      /><PortfolioGraph :balance="account?.balance ?? 0" :stocks="account?.stocks ?? null" />
+        :stocks="stocks"
+      /><PortfolioGraph :balance="account?.balance ?? 0" :stocks="stocks" />
     </div>
     <div v-else class="flex items-center justify-center h-screen">
       <p class="text-black">Profile not found.</p>
@@ -28,6 +28,7 @@ import { stocksData as rawStocksData } from '@/stockArrays'
 const stocksData = rawStocksData as StocksData
 
 const account = ref<AppUser | null>(null)
+const stocks = ref<Stock[] | null>(null)
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
@@ -36,24 +37,40 @@ onMounted(async () => {
   if (route.params.id == '') {
     router.push({ path: `/profile/${auth.id}`, replace: true })
   }
-  const { data, error } = await supabase
+
+  // Fetch account data
+  const { data: accountData, error: accountError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', route.params.id)
     .single()
 
-  if (error) {
-    console.error('Error fetching account:', error)
+  if (accountError) {
+    console.error('Error fetching account:', accountError)
     return
   }
 
-  account.value = data
-  console.log(account)
+  account.value = accountData
+
+  // Fetch stocks data from separate table
+  const { data: stocksData, error: stocksError } = await supabase
+    .from('stocks')
+    .select('*')
+    .eq('id', route.params.id)
+
+  if (stocksError) {
+    console.error('Error fetching stocks:', stocksError)
+    return
+  }
+
+  stocks.value = stocksData
+
+  console.log(stocks.value)
 })
 
 const unsoldStocks = computed<Stock[] | null>(() => {
-  if (!account.value?.stocks) return null
-  return account.value.stocks.filter((s: Stock) => s.date_sold === null)
+  if (!stocks.value) return null
+  return stocks.value.filter((s: Stock) => s.date_sold === null)
 })
 
 const totalValue = computed(() => {
@@ -70,7 +87,7 @@ const totalValue = computed(() => {
 
       if (mostRecentData) {
         const currentPrice = parseFloat(mostRecentData['4. close'])
-        stockValue += currentPrice * stock.share_amount
+        stockValue += currentPrice * stock.amount
       }
     }
   })

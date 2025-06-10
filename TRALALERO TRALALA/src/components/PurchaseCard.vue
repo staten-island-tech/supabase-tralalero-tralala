@@ -11,7 +11,7 @@
       </div>
       <div class="mt-2">
         <span class="text-gray-700"
-          >{{ stock.share_amount }} share{{ stock.share_amount !== 1 ? 's' : '' }}</span
+          >{{ stock.amount }} share{{ stock.amount !== 1 ? 's' : '' }}</span
         >
       </div>
     </div>
@@ -22,7 +22,7 @@
       </div>
       <div class="mt-2 flex justify-between items-end">
         <span class="text-gray-700">
-          {{ stock.share_amount }} share{{ stock.share_amount !== 1 ? 's' : '' }}
+          {{ stock.amount }} share{{ stock.amount !== 1 ? 's' : '' }}
         </span>
         <span class="text-gray-500 text-sm">Sold: {{ sold }}</span>
       </div>

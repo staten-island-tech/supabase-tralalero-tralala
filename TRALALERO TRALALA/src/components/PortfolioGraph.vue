@@ -44,7 +44,7 @@ function getTotal(stocks: Stock[] | null, balance: number | null, date: string):
 
         if (dailyData[foundDate]) {
           const currentPrice = parseFloat(dailyData[foundDate]['4. close'])
-          stockValue += currentPrice * stock.share_amount
+          stockValue += currentPrice * stock.amount
         }
       }
     }

@@ -213,6 +213,8 @@ const handleSell = async () => {
     if (amount.value <= 0) {
       throw new Error('Amount must be greater than zero')
     }
+    const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
+    const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
 
     const supabaseStocksAmount = await supabase
       .from('stocks')
