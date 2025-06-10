@@ -5,7 +5,7 @@
         Value Information:
       </h2>
       <p class="text-lg">Portfolio Value (including PP): ${{ totalValue }}</p>
-      <p class="text-lg mb-1">Purchasing Power: ${{ balance }}</p>
+      <p class="text-lg mb-1">Purchasing Power: ${{ Math.floor(balance * 100) / 100 }}</p>
     </div>
     <div class="bg-white border-b border-gray-200 p-7">
       <OwnedStocks :ownedStocks="stocks || []" />

@@ -1,9 +1,6 @@
 <template>
   <div>
     <PopularStocks />
-    <button v-if="auth.isLoggedIn" @click="doSomething">button</button>
-
-    <p v-else>Please log in to access this feature.</p>
   </div>
 </template>
 
