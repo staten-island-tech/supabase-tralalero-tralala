@@ -119,7 +119,6 @@ const handleBuy = async () => {
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
   }
-
   try {
     const stockTotalPrice =
       amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
