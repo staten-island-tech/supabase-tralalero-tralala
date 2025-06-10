@@ -7,9 +7,7 @@
       <p class="text-white font-medium">Please log in to trade</p>
     </div>
 
-
     <h2 class="text-xl font-medium mb-4 text-gray-900">Trade Menu</h2>
-
 
     <div class="">
       <div class="mb-2">
@@ -40,7 +38,6 @@
         />
       </div>
 
-
       <div class="flex space-x-3">
         <button
           @click="handleBuy"
@@ -50,7 +47,6 @@
           Buy
         </button>
 
-
         <button
           @click="handleSell"
           :disabled="!isValidAmount || !auth.id"
@@ -59,7 +55,6 @@
           Sell
         </button>
       </div>
-
 
       <div
         v-if="errorMessage"
@@ -71,7 +66,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/supabase'
@@ -82,9 +76,7 @@ import { useRoute } from 'vue-router'
 import { elements } from 'chart.js'
 const route = useRoute()
 
-
 const stocksData = rawStocksData as StocksData
-
 
 const account = ref<AppUser | null>(null)
 const auth = useAuthStore()
@@ -94,38 +86,30 @@ const isLoading = ref<'buy' | 'sell' | null>(null)
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string>()
 
-
 const today = new Date()
 const formattedDate = ref(today.toISOString().split('T')[0])
-
 
 const isValidAmount = computed(() => {
   return amount.value !== null && amount.value > 0
 })
 
-
 onMounted(async () => {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', auth.id).single()
-
 
   if (error) {
     console.error('Error fetching account:', error)
     return
   }
 
-
   account.value = data
 })
-
 
 const processData = (rawData: any, daysBack: number): StockPoint[] => {
   const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
   const today = new Date()
   today.setHours(0, 0, 0, 0) // Normalize to start of day
 
-
   const cutoffDate = getDateNDaysAgo(daysBack)
-
 
   // Convert to array and filter dates
   let data = Object.entries(timeSeries)
@@ -136,13 +120,11 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
     .filter((d) => d.date < today && d.date >= cutoffDate)
     .sort((a, b) => a.date.getTime() - b.date.getTime())
 
-
   // If we don't have enough data points, fill in with nearest available data
   if (data.length < daysBack) {
     const allDates = Object.keys(timeSeries)
       .map((d) => new Date(d))
       .sort((a, b) => a.getTime() - b.getTime())
-
 
     const filledData: StockPoint[] = []
     for (let i = 0; i < daysBack; i++) {
@@ -171,21 +153,16 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }
 
-
   return data
 }
-
 
 const handleBuy = async () => {
   if (!isValidAmount.value) return
 
-
   errorMessage.value = ''
-
 
   const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
   const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
-
 
   try {
     if (amount.value <= 0) {
@@ -196,7 +173,7 @@ const handleBuy = async () => {
   }
   try {
     const stockTotalPrice =
-        amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
+      amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
     if (account.value?.balance < stockTotalPrice) {
       throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
     } else {
@@ -214,11 +191,9 @@ const handleBuy = async () => {
           })
           .select()
 
-
         if (error) {
           throw error
         }
-
 
         successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
         console.log('Buy order successful:', data)
@@ -229,13 +204,51 @@ const handleBuy = async () => {
   }
 }
 
-
 const handleSell = async () => {
   if (!isValidAmount.value) return
 
-
   errorMessage.value = ''
 
+  try {
+    if (amount.value <= 0) {
+      throw new Error('Amount must be greater than zero')
+    }
+
+    const supabaseStocksAmount = await supabase
+      .from('stocks')
+      .select('amount')
+      .eq('id', auth.id)
+      .eq('ticker', ticker)
+      .single()
+
+    if (!supabaseStocksAmount.data || supabaseStocksAmount.data.amount < amount.value) {
+      throw new Error('Insufficient shares to sell')
+    }
+
+    const stockTotalPrice =
+      amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
+
+    const { data, error } = await supabase
+      .from('stocks')
+      .update({
+        amount: supabaseStocksAmount.data.amount - amount.value,
+        date_sold: date,
+      })
+      .eq('id', auth.id)
+      .eq('ticker', ticker)
+      .select()
+
+    if (error) {
+      throw error
+    }
+
+    account.value!.balance += stockTotalPrice
+
+    successMessage.value = `Successfully sold ${amount.value} shares of ${ticker} on ${date}`
+    console.log('Sell order successful:', data)
+  } catch (error) {
+    console.error('Error selling stock:', error)
+  }
 
   try {
   } catch (error) {
@@ -243,8 +256,3 @@ const handleSell = async () => {
   }
 }
 </script>
-
-
-
-
-
