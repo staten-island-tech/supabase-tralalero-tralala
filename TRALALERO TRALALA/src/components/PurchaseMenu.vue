@@ -122,19 +122,37 @@ const handleBuy = async () => {
   try {
     const stockTotalPrice =
       amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
-    if (account.value?.balance ?? 0 < stockTotalPrice) {
+
+    if (account.value?.balance! < stockTotalPrice) {
       console.error('Insufficient balance for this purchase')
     } else {
+      const supabaseStocksAmount = await supabase
+        .from('stocks')
+        .select('amount')
+        .eq('id', auth.id)
+        .single()
+      const totalAmount = Number(supabaseStocksAmount.data?.amount + amount.value)
+
+      /* const {} = await supabase
+        .from('profiles')
+        .update({
+          balance: account.value!.balance - stockTotalPrice,
+        })
+        .eq('id', auth.id)
+        .select('balance') */
+
       const { data, error } = await supabase
         .from('stocks')
-        .insert({
+        .upsert({
           ticker: ticker,
-          amount: amount.value,
+          amount: totalAmount,
           date_bought: date,
           date_sold: null,
           id: auth.id,
         })
         .select()
+
+      account.value!.balance -= stockTotalPrice
 
       if (error) {
         throw error
@@ -146,16 +164,57 @@ const handleBuy = async () => {
   } catch (error) {
     console.log(error)
   }
+}
 
-  const handleSell = async () => {
-    if (!isValidAmount.value) return
+const handleSell = async () => {
+  if (!isValidAmount.value) return
 
-    errorMessage.value = ''
+  errorMessage.value = ''
 
-    try {
-    } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : 'Failed to complete sell order'
+  try {
+    if (amount.value <= 0) {
+      throw new Error('Amount must be greater than zero')
     }
+
+    const supabaseStocksAmount = await supabase
+      .from('stocks')
+      .select('amount')
+      .eq('id', auth.id)
+      .eq('ticker', ticker)
+      .single()
+
+    if (!supabaseStocksAmount.data || supabaseStocksAmount.data.amount < amount.value) {
+      throw new Error('Insufficient shares to sell')
+    }
+
+    const stockTotalPrice =
+      amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
+
+    const { data, error } = await supabase
+      .from('stocks')
+      .update({
+        amount: supabaseStocksAmount.data.amount - amount.value,
+        date_sold: date,
+      })
+      .eq('id', auth.id)
+      .eq('ticker', ticker)
+      .select()
+
+    if (error) {
+      throw error
+    }
+
+    account.value!.balance += stockTotalPrice
+
+    successMessage.value = `Successfully sold ${amount.value} shares of ${ticker} on ${date}`
+    console.log('Sell order successful:', data)
+  } catch (error) {
+    console.error('Error selling stock:', error)
+  }
+
+  try {
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to complete sell order'
   }
 }
 </script>
