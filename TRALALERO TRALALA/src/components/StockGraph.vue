@@ -84,7 +84,6 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
       .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }
-  console.log(data)
   return data
 }
 

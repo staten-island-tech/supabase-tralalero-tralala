@@ -1,9 +1,9 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
 interface AuthState {
-  isLoggedIn: boolean;
-  user: any | null;
-  id: any | null;
+  isLoggedIn: boolean
+  user: any | null
+  id: any | null
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -14,13 +14,14 @@ export const useAuthStore = defineStore('auth', {
   }),
   actions: {
     setLoggedIn(id: any, user: any) {
-      this.isLoggedIn = true;
-      this.user = user;
-      this.id = id;
+      this.isLoggedIn = true
+      this.user = user
+      this.id = id
     },
     setLoggedOut() {
-      this.isLoggedIn = false;
-      this.user = null;
+      this.isLoggedIn = false
+      this.user = null
     },
   },
-});
+  persist: true,
+})
