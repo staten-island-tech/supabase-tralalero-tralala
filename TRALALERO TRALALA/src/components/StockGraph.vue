@@ -37,7 +37,7 @@ const getDateNDaysAgo = (days: number): Date => {
 }
 
 const processData = (rawData: any, daysBack: number): StockPoint[] => {
-  const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
+  const timeSeries = rawData!['Time Series (Daily)']! as DailyStockData
   const today = new Date()
   today.setHours(0, 0, 0, 0) // Normalize to start of day
 

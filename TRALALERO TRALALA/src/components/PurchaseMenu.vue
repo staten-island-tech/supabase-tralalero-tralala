@@ -26,8 +26,14 @@
           :value="
             amount > 0
               ? '$' +
-                amount *
-                  stocksData[route.params.ticker]['Time Series (Daily)'][formattedDate]['4. close']
+                Math.floor(
+                  amount *
+                    stocksData[route.params.ticker]['Time Series (Daily)'][formattedDate][
+                      '4. close'
+                    ] *
+                    100,
+                ) /
+                  100
               : ''
           "
           type="text"
@@ -130,16 +136,18 @@ const handleBuy = async () => {
         .from('stocks')
         .select('amount')
         .eq('id', auth.id)
+        .eq('ticker', ticker)
         .single()
-      const totalAmount = Number(supabaseStocksAmount.data?.amount + amount.value)
+      const previousAmount = supabaseStocksAmount.data?.amount ?? 0
+      const totalAmount = previousAmount + amount.value
 
-      /* const {} = await supabase
+      const {} = await supabase
         .from('profiles')
         .update({
           balance: account.value!.balance - stockTotalPrice,
         })
         .eq('id', auth.id)
-        .select('balance') */
+        .select('balance')
 
       const { data, error } = await supabase
         .from('stocks')
