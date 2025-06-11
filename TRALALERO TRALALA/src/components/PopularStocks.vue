@@ -40,11 +40,10 @@ const getDateNDaysAgo = (days: number): Date => {
 const processData = (rawData: any, daysBack: number): StockPoint[] => {
   const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
   const today = new Date()
-  today.setHours(0, 0, 0, 0) // Normalize to start of day
+  today.setHours(0, 0, 0, 0)
 
   const cutoffDate = getDateNDaysAgo(daysBack)
 
-  // Convert to array and filter dates
   let data = Object.entries(timeSeries)
     .map(([timestamp, values]) => ({
       date: new Date(timestamp),
@@ -53,7 +52,6 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
     .filter((d) => d.date < today && d.date >= cutoffDate)
     .sort((a, b) => a.date.getTime() - b.date.getTime())
 
-  // If we don't have enough data points, fill in with nearest available data
   if (data.length < daysBack) {
     const allDates = Object.keys(timeSeries)
       .map((d) => new Date(d))
@@ -62,14 +60,13 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
     const filledData: StockPoint[] = []
     for (let i = 0; i < daysBack; i++) {
       const targetDate = getDateNDaysAgo(i)
-      // Find the first date that's equal or after targetDate
+
       const foundDate = allDates.find((d) => d >= targetDate)
       if (foundDate) {
         const existingPoint = data.find((d) => d.date.getTime() === foundDate.getTime())
         if (existingPoint) {
           filledData.unshift(existingPoint)
         } else {
-          // If not in our filtered data, get it from raw data
           const dateStr = foundDate.toISOString().split('T')[0]
           if (timeSeries[dateStr]) {
             filledData.unshift({
@@ -80,7 +77,7 @@ const processData = (rawData: any, daysBack: number): StockPoint[] => {
         }
       }
     }
-    // Remove duplicates and sort
+
     data = filledData
       .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
       .sort((a, b) => a.date.getTime() - b.date.getTime())
@@ -120,16 +117,13 @@ const drawChart = () => {
       .domain(d3.extent(data, (d) => d.date) as [Date, Date])
       .range([0, width])
 
-    // Calculate interval to show approximately 5 labels
     const desiredTicks = 5
     const interval = Math.max(1, Math.floor(data.length / (desiredTicks - 1)))
 
-    // Create a filtered list of dates for the ticks
     const tickDates = data
       .filter((_, index) => index % interval === 0 || index === data.length - 1)
       .map((d) => d.date)
 
-    // Add x-axis with custom ticks
     svg
       .append('g')
       .attr('transform', `translate(0,${height})`)
@@ -168,7 +162,6 @@ const drawChart = () => {
   }
 }
 
-// Watch for changes in selectedValue
 watch(selectedValue, () => {
   drawChart()
 })

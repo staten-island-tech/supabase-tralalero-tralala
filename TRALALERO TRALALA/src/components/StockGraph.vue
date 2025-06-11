@@ -29,7 +29,10 @@ let width = 0
 const height = 390
 const margin = { top: 10, right: 30, bottom: 30, left: 60 }
 
-// Helper function to get the date N days ago from today
+let tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null
+let focusCircle: d3.Selection<SVGCircleElement, unknown, null, undefined> | null = null
+let focusLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
+
 const getDateNDaysAgo = (days: number): Date => {
   const date = new Date()
   date.setDate(date.getDate() - days)
@@ -39,58 +42,75 @@ const getDateNDaysAgo = (days: number): Date => {
 const processData = (rawData: any, daysBack: number): StockPoint[] => {
   const timeSeries = rawData!['Time Series (Daily)']! as DailyStockData
   const today = new Date()
-  today.setHours(0, 0, 0, 0) // Normalize to start of day
+  today.setHours(0, 0, 0, 0)
 
   const cutoffDate = getDateNDaysAgo(daysBack)
 
-  // Convert to array and filter dates
-  let data = Object.entries(timeSeries)
-    .map(([timestamp, values]) => ({
-      date: new Date(timestamp),
-      price: parseFloat(values['4. close']),
-    }))
-    .filter((d) => d.date < today && d.date >= cutoffDate)
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
+  const allDates = Object.keys(timeSeries)
+    .map((d) => new Date(d))
+    .sort((a, b) => a.getTime() - b.getTime())
 
-  // If we don't have enough data points, fill in with nearest available data
-  if (data.length < daysBack) {
-    const allDates = Object.keys(timeSeries)
-      .map((d) => new Date(d))
-      .sort((a, b) => a.getTime() - b.getTime())
+  const result: StockPoint[] = []
+  for (let i = 0; i < daysBack; i++) {
+    const targetDate = getDateNDaysAgo(i)
 
-    const filledData: StockPoint[] = []
-    for (let i = 0; i < daysBack; i++) {
-      const targetDate = getDateNDaysAgo(i)
-      // Find the first date that's equal or after targetDate
-      const foundDate = allDates.find((d) => d >= targetDate)
-      if (foundDate) {
-        const existingPoint = data.find((d) => d.date.getTime() === foundDate.getTime())
-        if (existingPoint) {
-          filledData.unshift(existingPoint)
-        } else {
-          // If not in our filtered data, get it from raw data
-          const dateStr = foundDate.toISOString().split('T')[0]
-          if (timeSeries[dateStr]) {
-            filledData.unshift({
-              date: foundDate,
-              price: parseFloat(timeSeries[dateStr]['4. close']),
-            })
-          }
-        }
+    let foundDate: Date | null = null
+    for (let j = allDates.length - 1; j >= 0; j--) {
+      if (allDates[j] <= targetDate) {
+        foundDate = allDates[j]
+        break
       }
     }
-    // Remove duplicates and sort
-    data = filledData
-      .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
+
+    if (foundDate) {
+      const dateStr = foundDate.toISOString().split('T')[0]
+      if (timeSeries[dateStr]) {
+        result.unshift({
+          date: targetDate,
+          price: parseFloat(timeSeries[dateStr]['4. close']),
+        })
+      }
+    }
   }
-  return data
+
+  if (result.length > 0 && result.length < daysBack) {
+    const earliestDateInResult = result[0].date
+    const earliestAvailableDate = allDates[0]
+
+    if (earliestAvailableDate < earliestDateInResult) {
+      const dateStr = earliestAvailableDate.toISOString().split('T')[0]
+      result.unshift({
+        date: earliestAvailableDate,
+        price: parseFloat(timeSeries[dateStr]['4. close']),
+      })
+    }
+  }
+
+  return result
 }
 
 const drawChart = async () => {
   if (!chartContainer.value || selectedValue.value === null) return
 
   d3.select(chartContainer.value).selectAll('svg').remove()
+
+  if (!tooltip) {
+    tooltip = d3
+      .select(chartContainer.value)
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0)
+      .style('position', 'absolute')
+      .style('background', 'white')
+      .style('padding', '6px 10px')
+      .style('border', '1px solid #ddd')
+      .style('border-radius', '4px')
+      .style('pointer-events', 'none')
+      .style('font-family', 'sans-serif')
+      .style('font-size', '12px')
+      .style('box-shadow', '0 1px 3px rgba(0,0,0,0.1)')
+      .style('z-index', '10')
+  }
 
   width = chartContainer.value.clientWidth - margin.left - margin.right
 
@@ -117,16 +137,13 @@ const drawChart = async () => {
       .domain(d3.extent(data, (d) => d.date) as [Date, Date])
       .range([0, width])
 
-    // Calculate interval to show approximately 5 labels
     const desiredTicks = 5
     const interval = Math.max(1, Math.floor(data.length / (desiredTicks - 1)))
 
-    // Create a filtered list of dates for the ticks
     const tickDates = data
       .filter((_, index) => index % interval === 0 || index === data.length - 1)
       .map((d) => d.date)
 
-    // Add x-axis with custom ticks
     svg
       .append('g')
       .attr('transform', `translate(0,${height})`)
@@ -160,12 +177,83 @@ const drawChart = async () => {
           .x((d) => x(d.date))
           .y((d) => y(d.price)),
       )
+
+    focusCircle = svg
+      .append('circle')
+      .attr('r', 5)
+      .attr('fill', 'steelblue')
+      .attr('stroke', 'white')
+      .attr('stroke-width', 2)
+      .style('opacity', 0)
+
+    focusLine = svg
+      .append('line')
+      .attr('class', 'focus-line')
+      .attr('y1', 0)
+      .attr('y2', height)
+      .attr('stroke', 'steelblue')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '3,3')
+      .style('opacity', 0)
+
+    svg
+      .append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('fill', 'none')
+      .attr('pointer-events', 'all')
+      .on('mouseover', mouseover)
+      .on('mousemove', mousemove)
+      .on('mouseout', mouseout)
+
+    function mouseover() {
+      focusCircle?.style('opacity', 1)
+      focusLine?.style('opacity', 1)
+      tooltip?.style('opacity', 1)
+    }
+
+    function mousemove(event: MouseEvent) {
+      if (!focusCircle || !focusLine || !tooltip || !chartContainer.value) return
+
+      const [mouseX] = d3.pointer(event)
+      const x0 = x.invert(mouseX)
+      const bisectDate = d3.bisector<StockPoint, Date>((d) => d.date).left
+      const i = bisectDate(data, x0, 1)
+      const d0 = data[i - 1]
+      const d1 = data[i]
+      if (!d0 || !d1) return
+
+      const d = x0.getTime() - d0.date.getTime() > d1.date.getTime() - x0.getTime() ? d1 : d0
+
+      focusCircle.attr('cx', x(d.date)).attr('cy', y(d.price)).style('opacity', 1)
+      focusLine.attr('x1', x(d.date)).attr('x2', x(d.date)).style('opacity', 1)
+
+      const tooltipX = x(d.date) + margin.left
+      const tooltipY = y(d.price) + margin.top + 150
+
+      const containerRect = chartContainer.value.getBoundingClientRect()
+      const maxX = containerRect.width - 100
+      const maxY = containerRect.height - 50
+
+      const adjustedX = Math.min(Math.max(tooltipX, 10), maxX)
+      const adjustedY = Math.min(Math.max(tooltipY, 10), maxY)
+
+      tooltip
+        .html(`<strong>${d3.timeFormat('%b %d, %Y')(d.date)}</strong><br/>$${d.price.toFixed(2)}`)
+        .style('left', `${adjustedX}px`)
+        .style('top', `${adjustedY}px`)
+    }
+
+    function mouseout() {
+      focusCircle?.style('opacity', 0)
+      focusLine?.style('opacity', 0)
+      tooltip?.style('opacity', 0)
+    }
   } catch (error) {
     console.error('Error loading or processing data:', error)
   }
 }
 
-// Watch for changes in selectedValue
 watch(selectedValue, () => {
   drawChart()
 })
@@ -185,5 +273,17 @@ onBeforeUnmount(() => {
   if (resizeObserver) {
     resizeObserver.disconnect()
   }
+  if (tooltip) {
+    tooltip.remove()
+  }
 })
 </script>
+
+<style>
+.tooltip {
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  position: absolute;
+  white-space: nowrap;
+}
+</style>

@@ -25,15 +25,7 @@
         <input
           :value="
             amount > 0
-              ? '$' +
-                Math.floor(
-                  amount *
-                    stocksData[route.params.ticker]['Time Series (Daily)'][formattedDate][
-                      '4. close'
-                    ] *
-                    100,
-                ) /
-                  100
+              ? '$' + Math.floor(amount * getLatestPrice(route.params.ticker as string) * 100) / 100
               : ''
           "
           type="text"
@@ -79,7 +71,6 @@ import { stocksData as rawStocksData } from '@/stockArrays'
 import { useAuthStore } from '../stores/authStore'
 import type { AppUser, StocksData } from '@/types/types'
 import { useRoute } from 'vue-router'
-import { elements } from 'chart.js'
 const route = useRoute()
 
 const stocksData = rawStocksData as StocksData
@@ -94,6 +85,24 @@ const successMessage = ref<string>()
 
 const today = new Date()
 const formattedDate = ref(today.toISOString().split('T')[0])
+
+const getLatestPrice = (ticker: string): number => {
+  const dailyData = stocksData[ticker]?.['Time Series (Daily)']
+  if (!dailyData) return 0
+
+  if (dailyData[formattedDate.value]) {
+    return Number(dailyData[formattedDate.value]['4. close'])
+  }
+
+  const dates = Object.keys(dailyData).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+  for (const date of dates) {
+    if (new Date(date) <= today) {
+      return Number(dailyData[date]['4. close'])
+    }
+  }
+
+  return 0
+}
 
 const isValidAmount = computed(() => {
   return amount.value !== null && amount.value > 0
@@ -110,62 +119,73 @@ onMounted(async () => {
   account.value = data
 })
 
-const processData = (rawData: any, daysBack: number): StockPoint[] => {
-  const timeSeries = rawData['Time Series (Daily)'] as DailyStockData
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Normalize to start of day
-
-  const cutoffDate = getDateNDaysAgo(daysBack)
-
-  // Convert to array and filter dates
-  let data = Object.entries(timeSeries)
-    .map(([timestamp, values]) => ({
-      date: new Date(timestamp),
-      price: parseFloat(values['4. close']),
-    }))
-    .filter((d) => d.date < today && d.date >= cutoffDate)
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
-
-  // If we don't have enough data points, fill in with nearest available data
-  if (data.length < daysBack) {
-    const allDates = Object.keys(timeSeries)
-      .map((d) => new Date(d))
-      .sort((a, b) => a.getTime() - b.getTime())
-
-    const filledData: StockPoint[] = []
-    for (let i = 0; i < daysBack; i++) {
-      const targetDate = getDateNDaysAgo(i)
-      // Find the first date that's equal or after targetDate
-      const foundDate = allDates.find((d) => d >= targetDate)
-      if (foundDate) {
-        const existingPoint = data.find((d) => d.date.getTime() === foundDate.getTime())
-        if (existingPoint) {
-          filledData.unshift(existingPoint)
-        } else {
-          // If not in our filtered data, get it from raw data
-          const dateStr = foundDate.toISOString().split('T')[0]
-          if (timeSeries[dateStr]) {
-            filledData.unshift({
-              date: foundDate,
-              price: parseFloat(timeSeries[dateStr]['4. close']),
-            })
-          }
-        }
-      }
-    }
-    // Remove duplicates and sort
-    data = filledData
-      .filter((v, i, a) => a.findIndex((t) => t.date.getTime() === v.date.getTime()) === i)
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-  }
-
-  return data
-}
-
 const handleBuy = async () => {
-  if (!isValidAmount.value) return
+  if (!isValidAmount.value || !auth.id) return
 
   errorMessage.value = ''
+  successMessage.value = ''
+
+  const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
+
+  const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
+
+  try {
+    if (amount.value <= 0) {
+      throw new Error('Amount must be greater than zero')
+    }
+
+    const pricePerShare = getLatestPrice(ticker)
+    if (pricePerShare <= 0) {
+      throw new Error('Could not retrieve stock price')
+    }
+
+    const stockTotalPrice = amount.value * pricePerShare
+
+    if (!account.value) {
+      throw new Error('Account information not available')
+    }
+
+    if (account.value.balance < stockTotalPrice) {
+      throw new Error('Insufficient funds for this purchase')
+    }
+
+    isLoading.value = 'buy'
+
+    const { error: tradeError } = await supabase.from('stocks').insert({
+      ticker: ticker,
+      amount: amount.value,
+      date: date,
+      bought: true,
+      id: auth.id,
+    })
+
+    if (tradeError) throw tradeError
+
+    const { error: balanceError } = await supabase
+      .from('profiles')
+      .update({
+        balance: account.value.balance - stockTotalPrice,
+      })
+      .eq('id', auth.id)
+
+    if (balanceError) throw balanceError
+
+    account.value.balance -= stockTotalPrice
+    successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} at $${pricePerShare.toFixed(2)} each`
+    amount.value = 0
+  } catch (error) {
+    console.error('Buy error:', error)
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
+  } finally {
+    isLoading.value = null
+  }
+}
+
+const handleSell = async () => {
+  if (!isValidAmount.value || !auth.id) return
+
+  errorMessage.value = ''
+  successMessage.value = ''
 
   const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
   const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
@@ -174,109 +194,69 @@ const handleBuy = async () => {
     if (amount.value <= 0) {
       throw new Error('Amount must be greater than zero')
     }
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
-  }
-  try {
-    const stockTotalPrice =
-      amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
-    if (account.value?.balance < stockTotalPrice) {
-      throw new Error('hahahahahahahahahaha you broke asf dude (xQc voice)')
-    } else {
-      const supabaseStocksAmount = await supabase
-        .from('stocks')
-        .select('amount')
-        .eq('id', auth.id)
-        .eq('ticker', ticker)
-        .single()
-      const previousAmount = supabaseStocksAmount.data?.amount ?? 0
-      const totalAmount = previousAmount + amount.value
 
-      const {} = await supabase
-        .from('profiles')
-        .update({
-          balance: account.value!.balance - stockTotalPrice,
-        })
-        .eq('id', auth.id)
-        .select('balance')
-      if (account.value?.balance ?? 0 < stockTotalPrice) {
-        console.error('Insufficient balance for this purchase')
-      } else {
-        const { data, error } = await supabase
-          .from('stocks')
-          .insert({
-            ticker: ticker,
-            amount: amount.value,
-            date_bought: date,
-            date_sold: null,
-            id: auth.id,
-          })
-          .select()
-
-        if (error) {
-          throw error
-        }
-
-        successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
-        console.log('Buy order successful:', data)
-      }
+    const pricePerShare = getLatestPrice(ticker)
+    if (pricePerShare <= 0) {
+      throw new Error('Could not retrieve stock price')
     }
-  } catch (error) {
-    console.log(error)
-  }
-}
 
-const handleSell = async () => {
-  if (!isValidAmount.value) return
+    const stockTotalPrice = amount.value * pricePerShare
 
-  errorMessage.value = ''
-
-  try {
-    if (amount.value <= 0) {
-      throw new Error('Amount must be greater than zero')
-    }
-    const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
-    const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
-
-    const supabaseStocksAmount = await supabase
+    const { data: boughtData, error: boughtError } = await supabase
       .from('stocks')
       .select('amount')
-      .eq('id', auth.id)
       .eq('ticker', ticker)
-      .single()
+      .eq('id', auth.id)
+      .eq('bought', true)
 
-    if (!supabaseStocksAmount.data || supabaseStocksAmount.data.amount < amount.value) {
-      throw new Error('Insufficient shares to sell')
+    if (boughtError) throw boughtError
+
+    const { data: soldData, error: soldError } = await supabase
+      .from('stocks')
+      .select('amount')
+      .eq('ticker', ticker)
+      .eq('id', auth.id)
+      .eq('bought', false)
+
+    if (soldError) throw soldError
+
+    const totalBought = boughtData.reduce((sum, holding) => sum + holding.amount, 0)
+    const totalSold = soldData.reduce((sum, holding) => sum + holding.amount, 0)
+    const availableShares = totalBought - totalSold
+
+    if (availableShares < amount.value) {
+      throw new Error(`Insufficient shares to sell. You have ${availableShares} shares available.`)
     }
 
-    const stockTotalPrice =
-      amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
+    isLoading.value = 'sell'
 
-    const { data, error } = await supabase
-      .from('stocks')
+    const { error: tradeError } = await supabase.from('stocks').insert({
+      ticker: ticker,
+      amount: amount.value,
+      date: date,
+      bought: false,
+      id: auth.id,
+    })
+
+    if (tradeError) throw tradeError
+
+    const { error: balanceError } = await supabase
+      .from('profiles')
       .update({
-        amount: supabaseStocksAmount.data.amount - amount.value,
-        date_sold: date,
+        balance: account.value.balance + stockTotalPrice,
       })
       .eq('id', auth.id)
-      .eq('ticker', ticker)
-      .select()
 
-    if (error) {
-      throw error
-    }
+    if (balanceError) throw balanceError
 
-    account.value!.balance += stockTotalPrice
-
-    successMessage.value = `Successfully sold ${amount.value} shares of ${ticker} on ${date}`
-    console.log('Sell order successful:', data)
+    account.value.balance += stockTotalPrice
+    successMessage.value = `Successfully sold ${amount.value} shares of ${ticker} at $${pricePerShare.toFixed(2)} each`
+    amount.value = 0
   } catch (error) {
-    console.error('Error selling stock:', error)
-  }
-
-  try {
-  } catch (error) {
+    console.error('Sell error:', error)
     errorMessage.value = error instanceof Error ? error.message : 'Failed to complete sell order'
+  } finally {
+    isLoading.value = null
   }
 }
 </script>

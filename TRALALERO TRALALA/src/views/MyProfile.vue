@@ -38,7 +38,6 @@ onMounted(async () => {
     router.push({ path: `/profile/${auth.id}`, replace: true })
   }
 
-  // Fetch account data
   const { data: accountData, error: accountError } = await supabase
     .from('profiles')
     .select('*')
@@ -52,7 +51,6 @@ onMounted(async () => {
 
   account.value = accountData
 
-  // Fetch stocks data from separate table
   const { data: stocksData, error: stocksError } = await supabase
     .from('stocks')
     .select('*')
@@ -64,13 +62,11 @@ onMounted(async () => {
   }
 
   stocks.value = stocksData
-
-  console.log(stocks.value)
 })
 
 const unsoldStocks = computed<Stock[] | null>(() => {
   if (!stocks.value) return null
-  return stocks.value.filter((s: Stock) => s.date_sold === null)
+  return stocks.value.filter((s: Stock) => !s.bought)
 })
 
 const totalValue = computed(() => {

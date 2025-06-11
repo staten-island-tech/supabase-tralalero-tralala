@@ -100,10 +100,32 @@ let width = 0
 const height = 390
 const margin = { top: 10, right: 45, bottom: 30, left: 60 }
 
+let tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null
+let focusCircle: d3.Selection<SVGCircleElement, unknown, null, undefined> | null = null
+let focusLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
+
 const drawChart = async () => {
   if (!chartContainer.value) return
 
   d3.select(chartContainer.value).selectAll('svg').remove()
+
+  if (!tooltip) {
+    tooltip = d3
+      .select(chartContainer.value)
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0)
+      .style('position', 'absolute')
+      .style('background', 'white')
+      .style('padding', '6px 10px')
+      .style('border', '1px solid #ddd')
+      .style('border-radius', '4px')
+      .style('pointer-events', 'none')
+      .style('font-family', 'sans-serif')
+      .style('font-size', '12px')
+      .style('box-shadow', '0 1px 3px rgba(0,0,0,0.1)')
+      .style('z-index', '10')
+  }
 
   width = chartContainer.value.clientWidth - margin.left - margin.right
 
@@ -129,13 +151,22 @@ const drawChart = async () => {
 
   const x = d3.scaleTime().domain([extent[0], extent[1]]).range([0, width])
 
-  // Improved x-axis configuration
-  const xAxis = d3
-    .axisBottom(x)
-    .ticks(selectedValue.value === 90 ? 6 : selectedValue.value === 30 ? 5 : 3) // Approximate number of ticks we want
-    .tickFormat(d3.timeFormat('%b %d'))
+  const desiredTicks = 5
+  const interval = Math.max(1, Math.floor(data.length / (desiredTicks - 1)))
 
-  svg.append('g').attr('transform', `translate(0,${height})`).call(xAxis)
+  const tickDates = data
+    .filter((_, index) => index % interval === 0 || index === data.length - 1)
+    .map((d) => d.date)
+
+  svg
+    .append('g')
+    .attr('transform', `translate(0,${height})`)
+    .call(
+      d3
+        .axisBottom(x)
+        .tickValues(tickDates)
+        .tickFormat(d3.timeFormat('%b %d') as any),
+    )
 
   const y = d3
     .scaleLinear()
@@ -160,6 +191,78 @@ const drawChart = async () => {
         .x((d) => x(d.date))
         .y((d) => y(d.price)),
     )
+
+  focusCircle = svg
+    .append('circle')
+    .attr('r', 5)
+    .attr('fill', 'steelblue')
+    .attr('stroke', 'white')
+    .attr('stroke-width', 2)
+    .style('opacity', 0)
+
+  focusLine = svg
+    .append('line')
+    .attr('class', 'focus-line')
+    .attr('y1', 0)
+    .attr('y2', height)
+    .attr('stroke', 'steelblue')
+    .attr('stroke-width', 1)
+    .attr('stroke-dasharray', '3,3')
+    .style('opacity', 0)
+
+  svg
+    .append('rect')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('fill', 'none')
+    .attr('pointer-events', 'all')
+    .on('mouseover', mouseover)
+    .on('mousemove', mousemove)
+    .on('mouseout', mouseout)
+
+  function mouseover() {
+    focusCircle?.style('opacity', 1)
+    focusLine?.style('opacity', 1)
+    tooltip?.style('opacity', 1)
+  }
+
+  function mousemove(event: MouseEvent) {
+    if (!focusCircle || !focusLine || !tooltip || !chartContainer.value) return
+
+    const [mouseX] = d3.pointer(event)
+    const x0 = x.invert(mouseX)
+    const bisectDate = d3.bisector<StockPoint, Date>((d) => d.date).left
+    const i = bisectDate(data, x0, 1)
+    const d0 = data[i - 1]
+    const d1 = data[i]
+    if (!d0 || !d1) return
+
+    const d = x0.getTime() - d0.date.getTime() > d1.date.getTime() - x0.getTime() ? d1 : d0
+
+    focusCircle.attr('cx', x(d.date)).attr('cy', y(d.price)).style('opacity', 1)
+    focusLine.attr('x1', x(d.date)).attr('x2', x(d.date)).style('opacity', 1)
+
+    const tooltipX = x(d.date) + margin.left
+    const tooltipY = y(d.price) + 500
+
+    const containerRect = chartContainer.value.getBoundingClientRect()
+    const maxX = containerRect.width - 100
+    const maxY = containerRect.height - 50
+
+    const adjustedX = tooltipX
+    const adjustedY = tooltipY
+
+    tooltip
+      .html(`<strong>${d3.timeFormat('%b %d, %Y')(d.date)}</strong><br/>$${d.price.toFixed(2)}`)
+      .style('left', `${adjustedX}px`)
+      .style('top', `${adjustedY}px`)
+  }
+
+  function mouseout() {
+    focusCircle?.style('opacity', 0)
+    focusLine?.style('opacity', 0)
+    tooltip?.style('opacity', 0)
+  }
 }
 
 watch(
@@ -183,5 +286,17 @@ onBeforeUnmount(() => {
   if (resizeObserver) {
     resizeObserver.disconnect()
   }
+  if (tooltip) {
+    tooltip.remove()
+  }
 })
 </script>
+
+<style>
+.tooltip {
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  position: absolute;
+  white-space: nowrap;
+}
+</style>
