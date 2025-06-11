@@ -28,8 +28,8 @@ export type StockData = {
 export interface Stock {
   ticker: string
   amount: number
-  date_bought: string
-  date_sold: string | null
+  date: string
+  bought: boolean
 }
 
 export type StocksData = {

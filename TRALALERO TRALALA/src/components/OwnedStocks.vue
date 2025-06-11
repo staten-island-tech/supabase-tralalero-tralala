@@ -1,33 +1,69 @@
 <template>
   <div>
     <h2 class="text-xl font-semibold text-gray-800 pb-2 border-gray-200">Owned Stocks:</h2>
-    <input
-      class="m-2 accent-black transform scale-110"
-      type="checkbox"
-      id="showSold"
-      v-model="showSold"
-    />
-    <label for="showSold">Show sold stocks</label>
-    <PurchaseCard
-      v-if="(ownedStocks || []).length > 0"
-      v-for="stock in ownedStocks || []"
-      :key="stock.id"
-      :stock="stock"
-      :sold="stock.date_sold"
-      :show="showSold"
-    />
+    <template v-if="Object.keys(groupedStocks).length > 0">
+      <PurchaseCard
+        v-for="(stockData, ticker) in groupedStocks"
+        :key="ticker"
+        :stock="{
+          ...stockData.latestTransaction,
+          ticker: ticker,
+          amount: stockData.amount,
+        }"
+      />
+    </template>
     <p v-else>&emsp;No stocks owned</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Stock } from '@/types/types'
-import PurchaseCard from '@/components/PurchaseCard.vue'
-import { ref } from 'vue'
+import { computed } from 'vue'
 
-const showSold = ref(false)
-
-defineProps<{
+const props = defineProps<{
   ownedStocks: Stock[] | null
 }>()
+
+const groupedStocks = computed(() => {
+  if (!props.ownedStocks) return {}
+
+  const tickerMap: Record<
+    string,
+    {
+      amount: number
+      latestTransaction: Stock
+    }
+  > = {}
+
+  props.ownedStocks.forEach((transaction) => {
+    if (!tickerMap[transaction.ticker]) {
+      tickerMap[transaction.ticker] = {
+        amount: 0,
+        latestTransaction: transaction,
+      }
+    }
+
+    if (transaction.bought) {
+      tickerMap[transaction.ticker].amount += transaction.amount
+    } else {
+      tickerMap[transaction.ticker].amount = Math.max(
+        0,
+        tickerMap[transaction.ticker].amount - transaction.amount,
+      )
+    }
+
+    if (
+      new Date(transaction.date) > new Date(tickerMap[transaction.ticker].latestTransaction.date)
+    ) {
+      tickerMap[transaction.ticker].latestTransaction = transaction
+    }
+  })
+
+  Object.keys(tickerMap).forEach((ticker) => {
+    if (tickerMap[ticker].amount <= 0) {
+      delete tickerMap[ticker]
+    }
+  })
+
+  return tickerMap
+})
 </script>
