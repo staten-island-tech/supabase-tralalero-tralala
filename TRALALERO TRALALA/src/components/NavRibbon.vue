@@ -91,11 +91,9 @@
 </template>
 
 <script setup lang="ts">
-import { supabase } from '@/supabase'
 import { useAuthStore } from '../stores/authStore'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { parseConfigFileTextToJson } from 'typescript'
 
 const router = useRouter()
 
@@ -111,25 +109,4 @@ const handleLogout = () => {
   auth.setLoggedOut()
   isOpen.value = false
 }
-
-const totalBalance = ref<number>(0)
-const fetchTotalBalance = async () => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('balance')
-    .eq('id', auth.id)
-    .single()
-
-  if (error) {
-    console.error('Error fetching balance:', error)
-  } else {
-    totalBalance.value = data.balance
-  }
-}
-
-fetchTotalBalance()
-
-onMounted(() => {
-  fetchTotalBalance()
-})
 </script>
