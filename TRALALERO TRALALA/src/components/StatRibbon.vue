@@ -1,13 +1,11 @@
 <template>
   <div>
-    <div class="bg-white border-b border-gray-200 p-7">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4 pb-2 border-gray-200">
-        Value Information:
-      </h2>
+    <div class="bg-base-100 p-7">
+      <h2 class="text-xl font-semibold mb-4 pb-2">Value Information:</h2>
       <p class="text-lg">Portfolio Value (including PP): ${{ totalValue }}</p>
       <p class="text-lg mb-1">Purchasing Power: ${{ Math.floor(balance * 100) / 100 }}</p>
     </div>
-    <div class="bg-white border-b border-gray-200 p-7">
+    <div class="bg-base-100 p-7">
       <OwnedStocks :ownedStocks="stocks || []" />
     </div>
   </div>

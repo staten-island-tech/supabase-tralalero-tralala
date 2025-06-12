@@ -6,7 +6,6 @@
         class="font-bold text-lg cursor-pointer hover:text-blue-600"
       >
         {{ stock.ticker }}
-        <!-- Now correctly shows the ticker symbol -->
       </span>
       <span class="text-gray-500 text-sm">{{ stock.date }}</span>
     </div>

@@ -1,10 +1,11 @@
 <template>
   <div>
-    <h2 class="text-xl font-semibold text-gray-800 m-4 mb-2 p-2 border-gray-200">
-      Porfolio Graph:
-    </h2>
+    <h2 class="text-xl font-semibold m-4 mb-2 p-2">Porfolio Graph:</h2>
     <GraphMenu @update:selected="handleSelection" />
-    <div ref="chartContainer" class="bg-white rounded-lg shadow w-full"></div>
+    <div
+      ref="chartContainer"
+      class="bg-base-300 rounded-lg shadow-lg w-full p-2 border border-gray-700"
+    ></div>
   </div>
 </template>
 
@@ -116,14 +117,15 @@ const drawChart = async () => {
       .attr('class', 'tooltip')
       .style('opacity', 0)
       .style('position', 'absolute')
-      .style('background', 'white')
+      .style('background', '#282a36')
+      .style('color', '#f8f8f2')
       .style('padding', '6px 10px')
-      .style('border', '1px solid #ddd')
+      .style('border', '1px solid #6272a4')
       .style('border-radius', '4px')
       .style('pointer-events', 'none')
       .style('font-family', 'sans-serif')
       .style('font-size', '12px')
-      .style('box-shadow', '0 1px 3px rgba(0,0,0,0.1)')
+      .style('box-shadow', '0 1px 3px rgba(0,0,0,0.3)')
       .style('z-index', '10')
   }
 
@@ -167,6 +169,11 @@ const drawChart = async () => {
         .tickValues(tickDates)
         .tickFormat(d3.timeFormat('%b %d') as any),
     )
+    .selectAll('path, line')
+    .attr('stroke', '#6272a4')
+    .attr('stroke-opacity', '0.5')
+
+  svg.selectAll('.tick text').attr('fill', '#f8f8f2')
 
   const y = d3
     .scaleLinear()
@@ -176,14 +183,21 @@ const drawChart = async () => {
     ])
     .range([height, 0])
 
-  svg.append('g').call(d3.axisLeft(y))
+  svg
+    .append('g')
+    .call(d3.axisLeft(y))
+    .selectAll('path, line')
+    .attr('stroke', '#6272a4')
+    .attr('stroke-opacity', '0.5')
+
+  svg.selectAll('.tick text').attr('fill', '#f8f8f2')
 
   svg
     .append('path')
     .datum(data)
     .attr('fill', 'none')
-    .attr('stroke', 'black')
-    .attr('stroke-width', 1.5)
+    .attr('stroke', '#50fa7b')
+    .attr('stroke-width', 2)
     .attr(
       'd',
       d3
@@ -195,8 +209,8 @@ const drawChart = async () => {
   focusCircle = svg
     .append('circle')
     .attr('r', 5)
-    .attr('fill', 'steelblue')
-    .attr('stroke', 'white')
+    .attr('fill', '#ff79c6')
+    .attr('stroke', '#282a36')
     .attr('stroke-width', 2)
     .style('opacity', 0)
 
@@ -205,7 +219,7 @@ const drawChart = async () => {
     .attr('class', 'focus-line')
     .attr('y1', 0)
     .attr('y2', height)
-    .attr('stroke', 'steelblue')
+    .attr('stroke', '#ff79c6')
     .attr('stroke-width', 1)
     .attr('stroke-dasharray', '3,3')
     .style('opacity', 0)

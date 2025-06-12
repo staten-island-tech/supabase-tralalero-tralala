@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2 class="text-xl font-semibold text-gray-800 pb-2 border-gray-200">Owned Stocks:</h2>
+    <h2 class="text-xl font-semibold pb-2">Owned Stocks:</h2>
     <template v-if="Object.keys(groupedStocks).length > 0">
       <PurchaseCard
         v-for="(stockData, ticker) in groupedStocks"

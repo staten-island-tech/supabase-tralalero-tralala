@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white border-b border-gray-200 p-7">
+  <div class="bg-base-100 p-7">
     <h1 class="text-[min(5vw,1.5rem)] max-w-fit">{{ account?.id }}</h1>
   </div>
 </template>
