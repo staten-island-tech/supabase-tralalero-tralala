@@ -1,12 +1,12 @@
 <template>
-  <div class="bg-white flex flex-col items-center justify-center p-4">
+  <div class="bg-base-100 flex flex-col items-center justify-center p-4">
     <div
-      class="w-full min-h-[480px] max-w-md border border-gray-200 rounded-lg shadow-sm py-10 px-8"
+      class="w-full min-h-[480px] max-w-md border border-base-300 rounded-lg shadow-sm py-10 px-8 bg-base-200"
     >
       <div class="flex flex-col h-full justify-between">
         <div>
-          <h2 class="text-3xl font-medium text-center mb-3 text-gray-900">Italy's Finest</h2>
-          <h2 class="text-2xl font-normal mb-8 text-gray-700 text-center">Log In</h2>
+          <h2 class="text-3xl font-medium text-center mb-3">Italy's Finest</h2>
+          <h2 class="text-2xl font-normal mb-8 text-base-content text-center">Log In</h2>
 
           <form @submit.prevent="handleLogIn" class="space-y-5">
             <div>
@@ -15,7 +15,7 @@
                 type="email"
                 placeholder="Email"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                class="w-full px-4 py-3 border border-base-300 rounded-md focus:outline-none focus:ring-1 focus:ring-base-300 focus:border-base-300 bg-base-100 focus:bg-[#373B4B] transition duration-100"
               />
             </div>
 
@@ -25,7 +25,7 @@
                 type="password"
                 placeholder="Password"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                class="w-full px-4 py-3 border border-base-300 rounded-md focus:outline-none focus:ring-1 focus:ring-base-300 focus:border-base-300 bg-base-100 focus:bg-[#373B4B] transition duration-100"
               />
             </div>
 

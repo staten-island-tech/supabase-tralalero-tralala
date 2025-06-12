@@ -1,4 +1,16 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark, dracula --dracula;
+  themes:
+    light --default,
+    dark --prefersdark,
+    dracula --dracula;
+}
+
+:root {
+  button {
+    cursor: pointer;
+  }
+  router-link {
+    cursor: pointer;
+  }
 }
