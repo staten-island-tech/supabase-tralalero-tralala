@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-base-200 m-auto">
+  <div class="flex bg-base-200 m-auto">
     <nav class="m-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 py-2">
       <router-link
         to="/"
@@ -7,7 +7,7 @@
       >
         <img src="/images/newhomebutton.png" alt="homeicon" class="h-10 w-10 object-cover" />
       </router-link>
-      <div class="text-xl">Italy's Finance</div>
+      <div class="text-xl m-auto text-center">Italy's Finance</div>
       <div class="flex items-center space-x-4">
         <div class="flex items-center space-x-4">
           <div class="relative" v-if="auth.isLoggedIn">
