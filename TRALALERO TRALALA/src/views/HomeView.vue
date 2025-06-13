@@ -1,7 +1,8 @@
 <template>
   <div>
     <PopularStocks />
-    <MoneyCards />
+    <MoneyCards v-if="auth.isLoggedIn" />
+    <div v-else></div>
   </div>
 </template>
 
