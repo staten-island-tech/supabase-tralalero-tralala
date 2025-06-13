@@ -212,7 +212,6 @@ const handleSell = async () => {
       throw new Error('Could not retrieve stock price')
     }
 
-    // Check available shares to sell
     const { data: boughtData, error: boughtError } = await supabase
       .from('stocks')
       .select('amount')
@@ -247,7 +246,6 @@ const handleSell = async () => {
 
     isLoading.value = 'sell'
 
-    // Insert sell transaction
     const { error: tradeError } = await supabase.from('stocks').insert({
       ticker: ticker,
       amount: amount.value,
@@ -258,7 +256,6 @@ const handleSell = async () => {
 
     if (tradeError) throw tradeError
 
-    // Update balance (adding funds from sale)
     const { error: balanceError } = await supabase
       .from('profiles')
       .update({

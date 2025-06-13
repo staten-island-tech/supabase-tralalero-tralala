@@ -2,7 +2,7 @@
   <div>
     <h1 class="m-6 mb-2 font-bold text-4xl">{{ route.params.ticker }}</h1>
     <h2 class="m-8 mt-0 mb-4 text-3xl">${{ latestPrice }}</h2>
-    <StockGraph :ticker="route.params.ticker" />
+    <StockGraph :ticker="ticker" />
     <PurchaseMenu />
   </div>
 </template>
@@ -11,7 +11,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import StockGraph from '@/components/StockGraph.vue'
-import type { StocksData } from '@/types/types'
+import type { StocksData, ValidTicker } from '@/types/types'
 import { stocksData as rawStocksData } from '@/stockArrays'
 import PurchaseMenu from '@/components/PurchaseMenu.vue'
 
@@ -22,6 +22,12 @@ const router = useRouter()
 
 const today = new Date()
 const formattedDate = ref(today.toISOString().split('T')[0])
+
+const ticker = computed(() => {
+  const t = route.params.ticker
+  const tickerStr = Array.isArray(t) ? t[0] : t
+  return (tickerStr || '').toUpperCase() as ValidTicker
+})
 
 const getLatestPrice = (ticker: string) => {
   const dailyData = stocksData[ticker]?.['Time Series (Daily)']
@@ -41,6 +47,11 @@ const getLatestPrice = (ticker: string) => {
   return 'N/A'
 }
 
+function isValidTicker(ticker: string | string[]): ticker is ValidTicker {
+  const tickerStr = Array.isArray(ticker) ? ticker[0] : ticker
+  return ['TSLA', 'AMZN', 'AAPL', 'GOOGL', 'NVDA'].includes(tickerStr?.toUpperCase())
+}
+
 const latestPrice = computed(() => {
   return getLatestPrice(route.params.ticker as string)
 })
@@ -48,10 +59,10 @@ const latestPrice = computed(() => {
 onMounted(() => {
   if (route.params.ticker == '') {
     router.push({ path: `/`, replace: true })
-  } else if (!stocksData[route.params.ticker.toUpperCase()]) {
+  } else if (!isValidTicker(route.params.ticker) || !stocksData[ticker.value]) {
     router.push({ path: `/`, replace: true })
   } else {
-    router.push({ path: `/stock/${route.params.ticker.toUpperCase()}`, replace: true })
+    router.push({ path: `/stock/${ticker.value}`, replace: true })
   }
 })
 </script>

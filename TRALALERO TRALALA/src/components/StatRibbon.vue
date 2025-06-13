@@ -2,7 +2,9 @@
   <div>
     <div class="bg-base-100 p-7">
       <h2 class="text-xl font-semibold mb-4 pb-2">Value Information:</h2>
-      <p class="text-lg">Portfolio Value (including PP): ${{ totalValue }}</p>
+      <p class="text-lg">
+        Portfolio Value (including PP): ${{ Math.floor(totalValue * 100) / 100 }}
+      </p>
       <p class="text-lg mb-1">Purchasing Power: ${{ Math.floor(balance * 100) / 100 }}</p>
     </div>
     <div class="bg-base-100 p-7">

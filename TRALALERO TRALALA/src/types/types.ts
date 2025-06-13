@@ -70,3 +70,5 @@ export interface DailyStockData {
     '5. volume': string
   }
 }
+
+export type ValidTicker = 'TSLA' | 'AMZN' | 'AAPL' | 'GOOGL' | 'NVDA'
