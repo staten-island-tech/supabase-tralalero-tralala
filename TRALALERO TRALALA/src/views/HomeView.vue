@@ -1,7 +1,7 @@
 <template>
   <div>
     <PopularStocks />
-    <MoneyCards />
+    <MoneyCards v-if="auth.id" />
   </div>
 </template>
 
@@ -11,8 +11,4 @@ import MoneyCards from '@/components/MoneyCards.vue'
 import { useAuthStore } from '../stores/authStore'
 
 const auth = useAuthStore()
-
-const doSomething = () => {
-  console.log('Doing something only a logged-in user can do!')
-}
 </script>
