@@ -21,7 +21,7 @@ const sortedStocks = computed(() => {
   if (!props.stocks) return []
 
   return [...props.stocks].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime()
+    return b.time_id - a.time_id
   })
 })
 
