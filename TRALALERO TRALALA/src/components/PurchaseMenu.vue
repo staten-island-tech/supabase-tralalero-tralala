@@ -199,129 +199,83 @@ const handleSell = async () => {
   errorMessage.value = ''
   successMessage.value = ''
 
+  const ticker = Array.isArray(route.params.ticker) ? route.params.ticker[0] : route.params.ticker
+  const date = Array.isArray(formattedDate.value) ? formattedDate.value[0] : formattedDate.value
+
   try {
     if (amount.value <= 0) {
       throw new Error('Amount must be greater than zero')
     }
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Failed to complete buy order'
-  }
-  try {
-    const stockTotalPrice =
-      amount.value * Number(stocksData?.[ticker]?.['Time Series (Daily)']?.[date]?.['4. close'])
 
-    if (account.value?.balance! < stockTotalPrice) {
-      console.error('Insufficient balance for this purchase')
-    } else {
-      const supabaseStocksAmount = await supabase
-        .from('stocks')
-        .select('amount')
-        .eq('id', auth.id)
-        .eq('ticker', ticker)
-        .single()
-      const previousAmount = supabaseStocksAmount.data?.amount ?? 0
-      const totalAmount = previousAmount + amount.value
-
-      const {} = await supabase
-        .from('profiles')
-        .update({
-          balance: account.value!.balance - stockTotalPrice,
-        })
-        .eq('id', auth.id)
-        .select('balance')
-
-      const { data, error } = await supabase
-        .from('stocks')
-        .upsert({
-          ticker: ticker,
-          amount: totalAmount,
-          date_bought: date,
-          date_sold: null,
-          id: auth.id,
-        })
-        .select()
-
-      account.value!.balance -= stockTotalPrice
-
-      if (error) {
-        throw error
-      }
-
-      successMessage.value = `Successfully bought ${amount.value} shares of ${ticker} on ${date}`
-      console.log('Buy order successful:', data)
-
-      const pricePerShare = getLatestPrice(ticker)
-      if (pricePerShare <= 0) {
-        throw new Error('Could not retrieve stock price')
-      }
-
-      const stockTotalPrice = amount.value * pricePerShare
+    const pricePerShare = getLatestPrice(ticker)
+    if (pricePerShare <= 0) {
+      throw new Error('Could not retrieve stock price')
     }
-    errorMessage.value = ''
-    try {
-      if (amount.value <= 0) {
-        throw new Error('Amount must be greater than zero')
-      }
 
-      const supabaseStocksAmount = await supabase
-      const { data: boughtData, error: boughtError } = await supabase
-        .from('stocks')
-        .select('amount')
-        .eq('ticker', ticker)
-        .eq('id', auth.id)
-        .eq('bought', true)
+    // Check available shares to sell
+    const { data: boughtData, error: boughtError } = await supabase
+      .from('stocks')
+      .select('amount')
+      .eq('ticker', ticker)
+      .eq('id', auth.id)
+      .eq('bought', true)
 
-      if (boughtError) throw boughtError
+    if (boughtError) throw boughtError
 
-      const { data: soldData, error: soldError } = await supabase
-        .from('stocks')
-        .select('amount')
-        .eq('ticker', ticker)
-        .eq('id', auth.id)
-        .eq('bought', false)
+    const { data: soldData, error: soldError } = await supabase
+      .from('stocks')
+      .select('amount')
+      .eq('ticker', ticker)
+      .eq('id', auth.id)
+      .eq('bought', false)
 
-      if (soldError) throw soldError
+    if (soldError) throw soldError
 
-      const totalBought = boughtData.reduce((sum, holding) => sum + holding.amount, 0)
-      const totalSold = soldData.reduce((sum, holding) => sum + holding.amount, 0)
-      const availableShares = totalBought - totalSold
+    const totalBought = boughtData.reduce((sum, holding) => sum + holding.amount, 0)
+    const totalSold = soldData.reduce((sum, holding) => sum + holding.amount, 0)
+    const availableShares = totalBought - totalSold
 
-      if (availableShares < amount.value) {
-        throw new Error(
-          `Insufficient shares to sell. You have ${availableShares} shares available.`,
-        )
-      }
+    if (availableShares < amount.value) {
+      throw new Error(`Insufficient shares to sell. You have ${availableShares} shares available.`)
+    }
 
-      isLoading.value = 'sell'
+    const stockTotalPrice = amount.value * pricePerShare
 
-      const { error: tradeError } = await supabase.from('stocks').insert({
-        ticker: ticker,
-        amount: amount.value,
-        date: date,
-        bought: false,
-        id: auth.id,
+    if (!account.value) {
+      throw new Error('Account information not available')
+    }
+
+    isLoading.value = 'sell'
+
+    // Insert sell transaction
+    const { error: tradeError } = await supabase.from('stocks').insert({
+      ticker: ticker,
+      amount: amount.value,
+      date: date,
+      bought: false,
+      id: auth.id,
+    })
+
+    if (tradeError) throw tradeError
+
+    // Update balance (adding funds from sale)
+    const { error: balanceError } = await supabase
+      .from('profiles')
+      .update({
+        balance: account.value.balance + stockTotalPrice,
       })
+      .eq('id', auth.id)
 
-      if (tradeError) throw tradeError
+    if (balanceError) throw balanceError
 
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({
-          balance: account.value.balance + stockTotalPrice,
-        })
-        .eq('id', auth.id)
-
-      if (balanceError) throw balanceError
-
-      account.value.balance += stockTotalPrice
-      successMessage.value = `Successfully sold ${amount.value} shares of ${ticker} at $${pricePerShare.toFixed(2)} each`
-      amount.value = 0
-    } catch (error) {
-      console.error('Sell error:', error)
-      errorMessage.value = error instanceof Error ? error.message : 'Failed to complete sell order'
-    } finally {
-      isLoading.value = null
-    }
-  } catch (error) {}
+    account.value.balance += stockTotalPrice
+    successMessage.value = `Successfully sold ${amount.value} shares of ${ticker} at $${pricePerShare.toFixed(2)} each`
+    amount.value = 0
+  } catch (error) {
+    console.error('Sell error:', error)
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to complete sell order'
+  } finally {
+    isLoading.value = null
+  }
 }
 </script>
