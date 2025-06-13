@@ -1,28 +1,24 @@
 <template>
-  <div
-    class="rounded-lg shadow p-4 border m-4"
-    :class="stock.bought ? 'bg-gray-800 border-gray-200' : 'bg-gray-900 border-gray-700'"
-  >
+  <div class="bg-gray-800 rounded-lg shadow p-4 border border-gray-200 m-4">
     <div class="flex items-center justify-between">
       <span
         @click="router.push({ path: `/stock/${stock.ticker}`, replace: true })"
-        class="font-bold text-lg cursor-pointer hover:text-blue-600"
-        :class="stock.bought ? 'text-white' : 'text-gray-400'"
+        class="font-bold text-lg text-white cursor-pointer hover:text-blue-600"
       >
         {{ stock.ticker }}
       </span>
-      <span class="text-sm" :class="stock.bought ? 'text-gray-300' : 'text-gray-500'">
+      <span class="text-gray-300 text-sm">
         {{ stock.bought ? 'Purchased' : 'Sold' }} on {{ stock.date }}
       </span>
     </div>
     <div class="mt-2 flex justify-between items-center">
-      <span :class="stock.bought ? 'text-gray-300' : 'text-gray-500'">
+      <span :class="stock.bought ? 'text-red-400' : 'text-green-400'">
         {{ stock.amount }} share{{ stock.amount !== 1 ? 's' : '' }} at ${{
           getPrice(stock.ticker, stock.date).toFixed(2)
         }}
         each
       </span>
-      <span class="text-sm" :class="stock.bought ? 'text-gray-300' : 'text-gray-500'">
+      <span class="text-gray-300 text-sm">
         Total: ${{ (stock.amount * getPrice(stock.ticker, stock.date)).toFixed(2) }}
       </span>
     </div>
