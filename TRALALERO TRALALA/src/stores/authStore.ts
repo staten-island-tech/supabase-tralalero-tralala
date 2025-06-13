@@ -21,6 +21,7 @@ export const useAuthStore = defineStore('auth', {
     setLoggedOut() {
       this.isLoggedIn = false
       this.user = null
+      this.id = null
     },
   },
   persist: true,
