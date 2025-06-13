@@ -7,7 +7,9 @@
       >
         {{ stock.ticker }}
       </span>
-      <span class="text-gray-300 text-sm">Bought at ${{ stock.totalPurchasePrice }}</span>
+      <span class="text-gray-300 text-sm"
+        >Bought at ${{ stock.totalPurchasePrice.toFixed(2) }}</span
+      >
     </div>
     <div class="mt-2 flex justify-between items-center">
       <span class="text-gray-300">
