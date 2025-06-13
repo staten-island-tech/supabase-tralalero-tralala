@@ -1,12 +1,12 @@
 <template>
-  <div class="bg-white flex flex-col items-center justify-center p-4">
+  <div class="bg-base-100 flex flex-col items-center justify-center p-4">
     <div
-      class="w-full min-h-[480px] max-w-md border border-gray-200 rounded-lg shadow-sm py-10 px-8"
+      class="w-full min-h-[480px] max-w-md border border-base-300 rounded-lg shadow-sm py-10 px-8 bg-base-200"
     >
       <div class="flex flex-col h-full justify-between">
         <div>
-          <h2 class="text-3xl font-medium text-center mb-3 text-gray-900">Italy's Finest</h2>
-          <h2 class="text-2xl font-normal mb-8 text-gray-700 text-center">Sign Up</h2>
+          <h2 class="text-3xl font-medium text-center mb-3">Italy's Finest</h2>
+          <h2 class="text-2xl font-normal mb-8 text-base-content text-center">Sign Up</h2>
 
           <form @submit.prevent="handleSignUp" class="space-y-5">
             <div>
@@ -15,7 +15,7 @@
                 type="email"
                 placeholder="Email"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                class="w-full px-4 py-3 border border-base-300 rounded-md focus:outline-none focus:ring-1 focus:ring-base-300 focus:border-base-300 bg-base-100 focus:bg-[#373B4B] transition duration-100"
               />
             </div>
 
@@ -25,7 +25,7 @@
                 type="password"
                 placeholder="Password"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                class="w-full px-4 py-3 border border-base-300 rounded-md focus:outline-none focus:ring-1 focus:ring-base-300 focus:border-base-300 bg-base-100 focus:bg-[#373B4B] transition duration-100"
               />
             </div>
 
@@ -40,15 +40,15 @@
 
           <div
             v-if="errorMessage"
-            class="mt-6 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm"
+            class="mt-6 p-3 bg-[#ff4a4a] border border-red-300 text-neutral-content rounded-md text-sm font-semibold"
           >
             {{ errorMessage }}
           </div>
         </div>
 
-        <div class="mt-8 text-center text-sm text-gray-500">
+        <div class="mt-8 text-center text-sm text-base-content">
           Already have an account?
-          <router-link to="/login" class="text-gray-700 hover:text-gray-900 underline">
+          <router-link to="/login" class="text-base-content hover:text-neutral-content underline">
             Log in
           </router-link>
         </div>

@@ -40,15 +40,15 @@
 
           <div
             v-if="errorMessage"
-            class="mt-6 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm"
+            class="mt-6 p-3 bg-[#ff4a4a] border border-red-300 text-neutral-content rounded-md text-sm font-semibold"
           >
             {{ errorMessage }}
           </div>
         </div>
 
-        <div class="mt-8 text-center text-sm text-gray-500">
+        <div class="mt-8 text-center text-sm text-base-content">
           Don't have an account?
-          <router-link to="/signup" class="text-gray-700 hover:text-gray-900 underline">
+          <router-link to="/signup" class="text-base-content hover:text-neutral-content underline">
             Sign up
           </router-link>
         </div>
