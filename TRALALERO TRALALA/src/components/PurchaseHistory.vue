@@ -4,7 +4,7 @@
     <template v-if="sortedStocks.length > 0">
       <PurchaseCard v-for="stock in sortedStocks" :key="stock.id" :stock="stock" />
     </template>
-    <p v-else>&emsp;No stocks owned</p>
+    <p v-else>&emsp;No stocks purchased</p>
   </div>
 </template>
 
